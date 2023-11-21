@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:id="@+id/wallpaper_activity"
+        android:title="Wallpapers"
+        android:icon="@drawable/icon_wallpaper">
+    </item>
+
+    <item android:id="@+id/video_activity"
+        android:title="Videos"
+        android:icon="@drawable/video_icon">
+    </item>
+
+</menu>
