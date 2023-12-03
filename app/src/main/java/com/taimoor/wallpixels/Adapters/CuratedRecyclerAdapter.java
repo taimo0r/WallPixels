@@ -39,7 +39,7 @@ public class CuratedRecyclerAdapter extends RecyclerView.Adapter<CuratedRecycler
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Picasso.get().load(list.get(position).getSrc().getLarge()).placeholder(R.drawable.image).into(holder.imageViewList);
+        Picasso.get().load(list.get(position).getSrc().getLarge()).into(holder.imageViewList);
 
         holder.homeListContainer.setOnClickListener(new View.OnClickListener() {
             @Override
