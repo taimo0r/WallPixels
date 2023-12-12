@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.app.DownloadManager;
 import android.app.WallpaperManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
@@ -30,7 +31,7 @@ public class WallPaperActivity extends AppCompatActivity {
     FloatingActionButton fabDownload, fabWallpaper;
     Photo photo;
     AlertDialog alertDialog;
-
+    AlertDialog.Builder builder;
     TextView original, large, large2x, small, medium, portrait, landscape, tiny;
 
     @Override
@@ -41,6 +42,7 @@ public class WallPaperActivity extends AppCompatActivity {
         setContentView(R.layout.activity_wall_paper);
 
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        builder = new AlertDialog.Builder(this);
 
 
         imageViewWallpaper = findViewById(R.id.imageview_wallpaper);
@@ -48,36 +50,55 @@ public class WallPaperActivity extends AppCompatActivity {
         fabWallpaper = findViewById(R.id.fab_wallpaper);
 
 
-        Toast.makeText(this, "Loading....", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "Loading....", Toast.LENGTH_SHORT).show();
         photo = (Photo) getIntent().getSerializableExtra("photo");
         Picasso.get().load(photo.getSrc().getOriginal()).placeholder(R.drawable.image).into(imageViewWallpaper);
 
 
-        fabDownload.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                selectQuality();
-            }
-        });
+        fabDownload.setOnClickListener(view -> selectQuality());
 
         fabWallpaper.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                WallpaperManager wallpaperManager = WallpaperManager.getInstance(WallPaperActivity.this);
-                Bitmap bitmap = ((BitmapDrawable) imageViewWallpaper.getDrawable()).getBitmap();
+                builder.setTitle("Confirmation");
+                builder.setMessage("Do you want to set this image as your wallpaper?");
 
-                try {
-                    wallpaperManager.setBitmap(bitmap);
-                    Toast.makeText(WallPaperActivity.this, "Wallpaper Set!", Toast.LENGTH_SHORT).show();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    Toast.makeText(WallPaperActivity.this, "Wallpaper cannot be set", Toast.LENGTH_SHORT).show();
-                }
+                builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        setWallpaper();
+                    }
+                });
+
+                builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+
+                AlertDialog dialog = builder.create();
+
+                dialog.setCanceledOnTouchOutside(false);
+                dialog.show();
 
             }
         });
 
 
+    }
+
+    private void setWallpaper() {
+        WallpaperManager wallpaperManager = WallpaperManager.getInstance(WallPaperActivity.this);
+        Bitmap bitmap = ((BitmapDrawable) imageViewWallpaper.getDrawable()).getBitmap();
+
+        try {
+            wallpaperManager.setBitmap(bitmap);
+            Toast.makeText(WallPaperActivity.this, "Wallpaper Set!", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(WallPaperActivity.this, "Wallpaper cannot be set", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void selectQuality() {
@@ -96,7 +117,7 @@ public class WallPaperActivity extends AppCompatActivity {
 
         alert.setView(dialogView);
         alertDialog = alert.create();
-      //  alertDialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation_2;
+        //  alertDialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation_2;
 
 
         Window window = alertDialog.getWindow();
@@ -210,7 +231,7 @@ public class WallPaperActivity extends AppCompatActivity {
                 .setTitle("WallPixels_" + quality + "_" + photo.getPhotographer())
                 .setMimeType("image/jpeg")
                 .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-                .setDestinationInExternalPublicDir(Environment.DIRECTORY_PICTURES, "WallPixels_"  + quality + "_"+ photo.getPhotographer() + ".jpg");
+                .setDestinationInExternalPublicDir(Environment.DIRECTORY_PICTURES, "WallPixels_" + quality + "_" + photo.getPhotographer() + ".jpg");
 
         downloadManager.enqueue(request);
 

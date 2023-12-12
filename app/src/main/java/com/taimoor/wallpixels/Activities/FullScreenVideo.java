@@ -13,6 +13,7 @@ import android.app.WallpaperManager;
 import android.content.ComponentName;
 import android.content.ContentUris;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.database.Cursor;
@@ -51,6 +52,7 @@ public class FullScreenVideo extends AppCompatActivity {
     Uri uri;
 
     private ActivityResultLauncher<Intent> setWallpaper;
+    AlertDialog.Builder builder;
 
     VideoFile file = null;
 
@@ -62,7 +64,7 @@ public class FullScreenVideo extends AppCompatActivity {
         setContentView(R.layout.activity_full_screen_video);
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
-
+        builder = new AlertDialog.Builder(this);
         fabDownloadVideo = findViewById(R.id.fab_download_video);
         fabWallpaperVideo = findViewById(R.id.fab_wallpaper_video);
         playerView = findViewById(R.id.full_screen_player);
@@ -98,7 +100,30 @@ public class FullScreenVideo extends AppCompatActivity {
         fabDownloadVideo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                downloadVideo();
+
+                builder.setTitle("Confirmation");
+                builder.setMessage("Do you want to download this video to your gallery?");
+
+                builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        downloadVideo();
+                    }
+                });
+
+                builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+
+                AlertDialog dialog = builder.create();
+
+                dialog.setCanceledOnTouchOutside(false);
+                dialog.show();
+
+
             }
         });
 
