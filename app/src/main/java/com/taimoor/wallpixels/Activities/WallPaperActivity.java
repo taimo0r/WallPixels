@@ -32,7 +32,7 @@ public class WallPaperActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_wall_paper);
 
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -46,7 +46,7 @@ public class WallPaperActivity extends AppCompatActivity {
 
         Toast.makeText(this, "Loading....", Toast.LENGTH_SHORT).show();
         photo = (Hit) getIntent().getSerializableExtra("photo");
-        Picasso.get().load(photo.getWebformatURL()).placeholder(R.drawable.image).into(imageViewWallpaper);
+        Picasso.get().load(photo.getLargeImageURL()).placeholder(R.drawable.image).into(imageViewWallpaper);
 
         fabDownload.setOnClickListener(view -> {
 
@@ -98,8 +98,7 @@ public class WallPaperActivity extends AppCompatActivity {
 
     private void downloadImg() {
 
-        DownloadManager downloadManager = null;
-        downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+        DownloadManager downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
         Uri uri = Uri.parse(photo.getWebformatURL());
 
 

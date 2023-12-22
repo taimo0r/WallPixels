@@ -1,17 +1,12 @@
 package com.taimoor.wallpixels.Adapters;
 
-import static android.graphics.Color.GREEN;
-
 import android.content.Context;
-import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.taimoor.wallpixels.Listeners.ItemClickListener;
@@ -24,9 +19,8 @@ public class CategoriesRecyclerAdapter extends RecyclerView.Adapter<CategoriesRe
 
     Context context;
     List<CategoriesModel> list;
-    private ItemClickListener clickListener;
+    private final ItemClickListener clickListener;
 
-    int selected_position = 0;
 
     public CategoriesRecyclerAdapter(Context context, List<CategoriesModel> list, ItemClickListener clickListener) {
         this.context = context;
@@ -48,12 +42,7 @@ public class CategoriesRecyclerAdapter extends RecyclerView.Adapter<CategoriesRe
     public void onBindViewHolder(@NonNull Viewholder holder, int position) {
         holder.categoryTxt.setText(list.get(position).getCategoryName());
 
-        holder.categoryTxt.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                clickListener.onItemClick(list.get(position).getCategoryName());
-            }
-        });
+        holder.categoryTxt.setOnClickListener(view -> clickListener.onItemClick(list.get(position).getCategoryName()));
     }
 
 
@@ -62,7 +51,7 @@ public class CategoriesRecyclerAdapter extends RecyclerView.Adapter<CategoriesRe
         return list.size();
     }
 
-    public class Viewholder extends RecyclerView.ViewHolder {
+    public static class Viewholder extends RecyclerView.ViewHolder {
         TextView categoryTxt;
         public Viewholder(@NonNull View itemView) {
             super(itemView);

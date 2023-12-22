@@ -6,11 +6,9 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -22,6 +20,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.taimoor.wallpixels.Adapters.CategoriesRecyclerAdapter;
 import com.taimoor.wallpixels.Adapters.VideosRecyclerAdapter;
+import com.taimoor.wallpixels.ApiService.RequestManager;
 import com.taimoor.wallpixels.Listeners.ApiResponseListener;
 import com.taimoor.wallpixels.Listeners.ItemClickListener;
 import com.taimoor.wallpixels.Listeners.VideoRecyclerClickListener;
@@ -29,7 +28,6 @@ import com.taimoor.wallpixels.Models.ApiResponse;
 import com.taimoor.wallpixels.Models.CategoriesModel;
 import com.taimoor.wallpixels.Models.Hit;
 import com.taimoor.wallpixels.R;
-import com.taimoor.wallpixels.ApiService.RequestManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -90,20 +88,17 @@ public class VideosActivity extends AppCompatActivity implements VideoRecyclerCl
 
         bottomNavigationView.setSelectedItemId(R.id.video_activity);
 
-        bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                switch (item.getItemId()) {
-                    case R.id.wallpaper_activity:
-                        startActivity(new Intent(getApplicationContext(), MainActivity.class));
-                        overridePendingTransition(0, 0);
-                        finish();
-                        return true;
-                    case R.id.video_activity:
-                        return true;
-                }
-                return false;
+        bottomNavigationView.setOnNavigationItemSelectedListener(item -> {
+            switch (item.getItemId()) {
+                case R.id.wallpaper_activity:
+                    startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                    overridePendingTransition(0, 0);
+                    finish();
+                    return true;
+                case R.id.video_activity:
+                    return true;
             }
+            return false;
         });
 
         dialog = new ProgressDialog(VideosActivity.this);
@@ -114,55 +109,46 @@ public class VideosActivity extends AppCompatActivity implements VideoRecyclerCl
         manager.getVideoWallpapers(listener, "1");
 
 
-        refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                dialog = new ProgressDialog(VideosActivity.this);
-                dialog.setTitle("Loading...");
-                dialog.show();
+        refreshLayout.setOnRefreshListener(() -> {
+            dialog = new ProgressDialog(VideosActivity.this);
+            dialog.setTitle("Loading...");
+            dialog.show();
 
-                manager = new RequestManager(VideosActivity.this);
-                manager.getVideoWallpapers(listener, "1");
-                refreshLayout.setRefreshing(false);
-            }
+            manager = new RequestManager(VideosActivity.this);
+            manager.getVideoWallpapers(listener, "1");
+            refreshLayout.setRefreshing(false);
         });
 
 
-        fabNext.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                pageNo = pageNo + 1;
-                String next_page = String.valueOf(pageNo);
-                if (!isSearch) {
-                    manager.getVideoWallpapers(listener, next_page);
-                } else {
-                    manager.getSearchedVideoWallpapers(searchListener, next_page, searchString);
-                }
-
-                if (pageNo > 1) {
-                    fabPrev.setVisibility(View.VISIBLE);
-                }
-                dialog.show();
+        fabNext.setOnClickListener(view -> {
+            pageNo = pageNo + 1;
+            String next_page = String.valueOf(pageNo);
+            if (!isSearch) {
+                manager.getVideoWallpapers(listener, next_page);
+            } else {
+                manager.getSearchedVideoWallpapers(searchListener, next_page, searchString);
             }
+
+            if (pageNo > 1) {
+                fabPrev.setVisibility(View.VISIBLE);
+            }
+            dialog.show();
         });
 
 
-        fabPrev.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                pageNo = pageNo - 1;
-                String prev_page = String.valueOf(pageNo);
-                if (!isSearch) {
-                    manager.getVideoWallpapers(listener, prev_page);
-                } else {
-                    manager.getSearchedVideoWallpapers(searchListener, prev_page, searchString);
-                }
-                if (pageNo == 1) {
-                    fabPrev.setVisibility(View.GONE);
-                }
-
-                dialog.show();
+        fabPrev.setOnClickListener(view -> {
+            pageNo = pageNo - 1;
+            String prev_page = String.valueOf(pageNo);
+            if (!isSearch) {
+                manager.getVideoWallpapers(listener, prev_page);
+            } else {
+                manager.getSearchedVideoWallpapers(searchListener, prev_page, searchString);
             }
+            if (pageNo == 1) {
+                fabPrev.setVisibility(View.GONE);
+            }
+
+            dialog.show();
         });
     }
 

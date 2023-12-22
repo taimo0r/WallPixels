@@ -55,13 +55,7 @@ public class VideosRecyclerAdapter extends RecyclerView.Adapter<VideosRecyclerAd
         exoPlayer.prepare();
         exoPlayer.setPlayWhenReady(false);
 
-        holder.playerView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                listener.onVideoClick(url, user);
-            }
-        });
+        holder.playerView.setOnClickListener(view -> listener.onVideoClick(url, user));
     }
 
     @Override
@@ -69,7 +63,7 @@ public class VideosRecyclerAdapter extends RecyclerView.Adapter<VideosRecyclerAd
         return list.size();
     }
 
-    public class Viewholder extends RecyclerView.ViewHolder {
+    public static class Viewholder extends RecyclerView.ViewHolder {
 
         PlayerView playerView;
 
@@ -84,12 +78,6 @@ public class VideosRecyclerAdapter extends RecyclerView.Adapter<VideosRecyclerAd
         if (holder.playerView.getPlayer() != null) {
             holder.playerView.getPlayer().release();
         }
-    }
-
-    public void updateVideos(List<Hit> newVideos) {
-        list.clear();
-        list.addAll(newVideos);
-        notifyDataSetChanged();
     }
 
 

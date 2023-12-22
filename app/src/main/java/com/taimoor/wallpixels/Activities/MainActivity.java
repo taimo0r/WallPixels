@@ -1,19 +1,9 @@
 package com.taimoor.wallpixels.Activities;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.SearchView;
-import androidx.core.app.ActivityCompat;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-
 import android.Manifest;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
@@ -27,10 +17,19 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
+import androidx.core.app.ActivityCompat;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.taimoor.wallpixels.Adapters.CategoriesRecyclerAdapter;
 import com.taimoor.wallpixels.Adapters.CuratedRecyclerAdapter;
+import com.taimoor.wallpixels.ApiService.RequestManager;
 import com.taimoor.wallpixels.Listeners.ApiResponseListener;
 import com.taimoor.wallpixels.Listeners.ItemClickListener;
 import com.taimoor.wallpixels.Listeners.onRecyclerClickListener;
@@ -38,7 +37,6 @@ import com.taimoor.wallpixels.Models.ApiResponse;
 import com.taimoor.wallpixels.Models.CategoriesModel;
 import com.taimoor.wallpixels.Models.Hit;
 import com.taimoor.wallpixels.R;
-import com.taimoor.wallpixels.ApiService.RequestManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,16 +59,10 @@ public class MainActivity extends AppCompatActivity implements onRecyclerClickLi
 
     int pageNo = 1;
 
-    private static final int REQUEST_EXTERNAL_STORAGE = 1;
-    private static String[] PERMISSIONS_STORAGE = {
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
-    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
 
         setContentView(R.layout.activity_main);
 
@@ -88,21 +80,18 @@ public class MainActivity extends AppCompatActivity implements onRecyclerClickLi
 
         bottomNavigationView.setSelectedItemId(R.id.wallpaper_activity);
 
-        bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                switch (item.getItemId()) {
-                    case R.id.wallpaper_activity:
-                        return true;
-                    case R.id.video_activity:
-                        startActivity(new Intent(getApplicationContext(), VideosActivity.class));
-                        overridePendingTransition(0, 0);
-                        finish();
-                        return true;
-                }
-
-                return false;
+        bottomNavigationView.setOnNavigationItemSelectedListener(item -> {
+            switch (item.getItemId()) {
+                case R.id.wallpaper_activity:
+                    return true;
+                case R.id.video_activity:
+                    startActivity(new Intent(getApplicationContext(), VideosActivity.class));
+                    overridePendingTransition(0, 0);
+                    finish();
+                    return true;
             }
+
+            return false;
         });
 
 
@@ -142,75 +131,60 @@ public class MainActivity extends AppCompatActivity implements onRecyclerClickLi
 
         categoriesRecycler.setAdapter(categoriesAdapter);
 
-        refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
+        refreshLayout.setOnRefreshListener(() -> {
 
-                dialog = new ProgressDialog(MainActivity.this);
-                dialog.setTitle("Loading...");
-                dialog.show();
-                manager = new RequestManager(MainActivity.this);
-                if (searchString == null) {
-                    manager.getWallpapers(listener, "1");
-                } else {
-                    manager.getSearchedWallpapers(searchListener, "1", searchString);
-                }
-                refreshLayout.setRefreshing(false);
+            dialog = new ProgressDialog(MainActivity.this);
+            dialog.setTitle("Loading...");
+            dialog.show();
+            manager = new RequestManager(MainActivity.this);
+            if (searchString == null) {
+                manager.getWallpapers(listener, "1");
+            } else {
+                manager.getSearchedWallpapers(searchListener, "1", searchString);
             }
+            refreshLayout.setRefreshing(false);
         });
 
-        fabNext.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                pageNo = pageNo + 1;
-                String next_page = String.valueOf(pageNo);
-                manager.getWallpapers(listener, next_page);
-                if (pageNo > 1) {
-                    fabPrev.setVisibility(View.VISIBLE);
-                }
-                dialog.show();
+        fabNext.setOnClickListener(view -> {
+            pageNo = pageNo + 1;
+            String next_page = String.valueOf(pageNo);
+            manager.getWallpapers(listener, next_page);
+            if (pageNo > 1) {
+                fabPrev.setVisibility(View.VISIBLE);
             }
+            dialog.show();
         });
 
 
-        fabPrev.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                pageNo = pageNo - 1;
-                String prev_page = String.valueOf(pageNo);
-                manager.getWallpapers(listener, prev_page);
-                if (pageNo == 1) {
-                    fabPrev.setVisibility(View.GONE);
-                }
-                dialog.show();
+        fabPrev.setOnClickListener(view -> {
+            pageNo = pageNo - 1;
+            String prev_page = String.valueOf(pageNo);
+            manager.getWallpapers(listener, prev_page);
+            if (pageNo == 1) {
+                fabPrev.setVisibility(View.GONE);
             }
+            dialog.show();
         });
 
-        fabSearchNext.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                pageNo = pageNo + 1;
-                String next_page = String.valueOf(pageNo);
-                manager.getSearchedWallpapers(searchListener, next_page, searchString);
-                if (pageNo > 1) {
-                    fabSearchPrev.setVisibility(View.VISIBLE);
-                }
-                dialog.show();
+        fabSearchNext.setOnClickListener(view -> {
+            pageNo = pageNo + 1;
+            String next_page = String.valueOf(pageNo);
+            manager.getSearchedWallpapers(searchListener, next_page, searchString);
+            if (pageNo > 1) {
+                fabSearchPrev.setVisibility(View.VISIBLE);
             }
+            dialog.show();
         });
 
 
-        fabSearchPrev.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                pageNo = pageNo - 1;
-                String prev_page = String.valueOf(pageNo);
-                manager.getSearchedWallpapers(searchListener, prev_page, searchString);
-                if (pageNo == 1) {
-                    fabSearchPrev.setVisibility(View.GONE);
-                }
-                dialog.show();
+        fabSearchPrev.setOnClickListener(view -> {
+            pageNo = pageNo - 1;
+            String prev_page = String.valueOf(pageNo);
+            manager.getSearchedWallpapers(searchListener, prev_page, searchString);
+            if (pageNo == 1) {
+                fabSearchPrev.setVisibility(View.GONE);
             }
+            dialog.show();
         });
 
         getPermission();
@@ -317,11 +291,7 @@ public class MainActivity extends AppCompatActivity implements onRecyclerClickLi
         NetworkInfo wifiConn = connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
         NetworkInfo mobileConn = connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
 
-        if ((wifiConn != null && wifiConn.isConnected()) || (mobileConn != null && mobileConn.isConnected())) {
-            return true;
-        } else {
-            return false;
-        }
+        return (wifiConn != null && wifiConn.isConnected()) || (mobileConn != null && mobileConn.isConnected());
 
     }
 
@@ -332,18 +302,8 @@ public class MainActivity extends AppCompatActivity implements onRecyclerClickLi
 
         builder.setMessage("Please check your internet connection before logging in")
                 .setCancelable(false)
-                .setPositiveButton("Connect", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
-                    }
-                })
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        Toast.makeText(MainActivity.this, "Connect to internet to load wallpapers", Toast.LENGTH_SHORT).show();
-                    }
-                });
+                .setPositiveButton("Connect", (dialogInterface, i) -> startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS)))
+                .setNegativeButton("Cancel", (dialogInterface, i) -> Toast.makeText(MainActivity.this, "Connect to internet to load wallpapers", Toast.LENGTH_SHORT).show());
 
         AlertDialog alert = builder.create();
         alert.show();

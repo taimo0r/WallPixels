@@ -38,14 +38,9 @@ public class CuratedRecyclerAdapter extends RecyclerView.Adapter<CuratedRecycler
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Picasso.get().load(list.get(position).getWebformatURL()).into(holder.imageViewList);
+        Picasso.get().load(list.get(position).getLargeImageURL()).into(holder.imageViewList);
 
-        holder.homeListContainer.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                listener.onCLick(list.get(holder.getAdapterPosition()));
-            }
-        });
+        holder.homeListContainer.setOnClickListener(view -> listener.onCLick(list.get(holder.getAdapterPosition())));
     }
 
     @Override
@@ -53,7 +48,7 @@ public class CuratedRecyclerAdapter extends RecyclerView.Adapter<CuratedRecycler
         return list.size();
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder {
+    public static class ViewHolder extends RecyclerView.ViewHolder {
 
         CardView homeListContainer;
         ImageView imageViewList;
