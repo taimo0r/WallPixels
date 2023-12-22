@@ -42,7 +42,7 @@ public class VideosRecyclerAdapter extends RecyclerView.Adapter<VideosRecyclerAd
     @Override
     public void onBindViewHolder(@NonNull Viewholder holder, int position) {
 
-        String url = list.get(position).getVideos().getTiny().getUrl();
+        String url = list.get(position).getVideos().getSmall().getUrl();
         String user = list.get(position).getUser();
         Uri uri = Uri.parse(url);
 

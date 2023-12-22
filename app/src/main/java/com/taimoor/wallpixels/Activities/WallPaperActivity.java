@@ -231,10 +231,11 @@ public class WallPaperActivity extends AppCompatActivity {
 
         request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI | DownloadManager.Request.NETWORK_MOBILE)
                 .setAllowedOverRoaming(false)
-                .setTitle("WallPixels_" + quality + "_" + photo.getUser())
+                .setTitle("WallPixels_" + photo.getUser() + "_Pixabay")
                 .setMimeType("image/jpeg")
                 .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-                .setDestinationInExternalPublicDir(Environment.DIRECTORY_PICTURES, "WallPixels_" + quality + "_" + photo.getUser() + ".jpg");
+
+                .setDestinationInExternalPublicDir(Environment.DIRECTORY_PICTURES,  "WallPixels_" + photo.getUser() + ".jpg");
 
         downloadManager.enqueue(request);
 

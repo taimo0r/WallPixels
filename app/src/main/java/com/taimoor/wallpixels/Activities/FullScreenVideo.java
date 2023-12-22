@@ -83,20 +83,9 @@ public class FullScreenVideo extends AppCompatActivity {
 
         exoPlayer = new ExoPlayer.Builder(this).build();
         playerView.setPlayer(exoPlayer);
-
-        // Create a MediaItem from the URI
-        MediaItem mediaItem = MediaItem.fromUri(uri);
-
-        // Create a clipping media source to play only the first 15 seconds
-        long fifteenSecondsInMicroseconds = 15 * 1000000L; // 15 seconds in microseconds
-        MediaSource mediaSource = new ProgressiveMediaSource.Factory(new DefaultDataSource.Factory(this))
-                .createMediaSource(mediaItem);
-        ClippingMediaSource clippedSource = new ClippingMediaSource(mediaSource, 0, fifteenSecondsInMicroseconds);
-
-        // Prepare and play the clipped media source
-        exoPlayer.setMediaSource(clippedSource);
+        exoPlayer.setMediaItem(MediaItem.fromUri(uri));
         exoPlayer.prepare();
-        exoPlayer.setPlayWhenReady(true);
+        exoPlayer.setPlayWhenReady(false);
     }
 
     private void setupDownloadButton() {
@@ -113,14 +102,10 @@ public class FullScreenVideo extends AppCompatActivity {
     }
 
     private void setupWallpaperButton() {
-        SharedPreferences sharedPref = getSharedPreferences("WALLPIXELS_PREFS", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putString("video_wallpaper_uri", uri.toString());
-        editor.apply();
+
+        saveVideoUriToPreferences(uri);
 
         fabWallpaperVideo.setOnClickListener(view -> {
-            Toast.makeText(FullScreenVideo.this, "Please Download video to Set as wallpaper", Toast.LENGTH_SHORT).show();
-
             Intent intent = new Intent(
                     WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER);
             intent.putExtra(WallpaperManager.EXTRA_LIVE_WALLPAPER_COMPONENT,
@@ -131,30 +116,21 @@ public class FullScreenVideo extends AppCompatActivity {
 
     }
 
-//    private void setupActivityResultLauncher() {
-//        setWallpaper = registerForActivityResult(
-//                new ActivityResultContracts.StartActivityForResult(),
-//                result -> {
-//                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-//                        Uri selectedUri = result.getData().getData();
-//                        if (selectedUri != null) {
-//                            String sourcePath = FileUtils.getPath(this, selectedUri);
-//                            String destinationPath = getFilesDir() + "/file.mp4";
-//                            FileUtils.copyFile(sourcePath, destinationPath);
-//                            VideoWallpaperService.setToWallpaper(this);
-//                        }
-//                    }
-//                });
-//    }
+    private void saveVideoUriToPreferences(Uri uri) {
+        SharedPreferences sharedPref = getSharedPreferences("WALLPIXELS_PREFS", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString("video_wallpaper_uri", uri.toString());
+        editor.apply();
+    }
 
     private void downloadVideo() {
         DownloadManager downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
         DownloadManager.Request request = new DownloadManager.Request(uri)
                 .setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI | DownloadManager.Request.NETWORK_MOBILE)
                 .setAllowedOverRoaming(false)
-                .setTitle("WallPixels_" + user)
+                .setTitle("WallPixels_Live_" + user + "_Pixabay" )
                 .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-                .setDestinationInExternalPublicDir(Environment.DIRECTORY_DCIM, "WallPixels_" + user + ".mp4");
+                .setDestinationInExternalPublicDir(Environment.DIRECTORY_PICTURES, "WallPixels_" + user + ".mp4");
 
         downloadManager.enqueue(request);
         Toast.makeText(FullScreenVideo.this, "Downloading Started!", Toast.LENGTH_SHORT).show();
