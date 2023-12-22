@@ -8,7 +8,9 @@ import android.app.WallpaperManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -22,14 +24,14 @@ import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.squareup.picasso.Picasso;
-import com.taimoor.wallpixels.Models.Photo;
+import com.taimoor.wallpixels.Models.Hit;
 import com.taimoor.wallpixels.R;
 
 public class WallPaperActivity extends AppCompatActivity {
 
     ImageView imageViewWallpaper;
     FloatingActionButton fabDownload, fabWallpaper;
-    Photo photo;
+    Hit photo;
     AlertDialog alertDialog;
     AlertDialog.Builder builder;
     TextView original, large, large2x, small, medium, portrait, landscape, tiny;
@@ -51,8 +53,8 @@ public class WallPaperActivity extends AppCompatActivity {
 
 
         Toast.makeText(this, "Loading....", Toast.LENGTH_SHORT).show();
-        photo = (Photo) getIntent().getSerializableExtra("photo");
-        Picasso.get().load(photo.getSrc().getOriginal()).placeholder(R.drawable.image).into(imageViewWallpaper);
+        photo = (Hit) getIntent().getSerializableExtra("photo");
+        Picasso.get().load(photo.getWebformatURL()).placeholder(R.drawable.image).into(imageViewWallpaper);
 
 
         fabDownload.setOnClickListener(view -> selectQuality());
@@ -113,11 +115,12 @@ public class WallPaperActivity extends AppCompatActivity {
         medium = (TextView) dialogView.findViewById(R.id.medium_txt);
         small = (TextView) dialogView.findViewById(R.id.small_txt);
         portrait = (TextView) dialogView.findViewById(R.id.portrait_txt);
-        tiny = (TextView) dialogView.findViewById(R.id.Tiny_txt);
+        tiny = (TextView) dialogView.findViewById(R.id.tiny_txt);
 
         alert.setView(dialogView);
         alertDialog = alert.create();
         //  alertDialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation_2;
+        alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
 
 
         Window window = alertDialog.getWindow();
@@ -201,37 +204,37 @@ public class WallPaperActivity extends AppCompatActivity {
 
         DownloadManager downloadManager = null;
         downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-        Uri uri;
+        Uri uri = Uri.parse(photo.getWebformatURL());
 
-        if (quality.equals("original")) {
-            uri = Uri.parse(photo.getSrc().getOriginal());
-        } else if (quality.equals("large")) {
-            uri = Uri.parse(photo.getSrc().getLarge());
-        } else if (quality.equals("large2x")) {
-            uri = Uri.parse(photo.getSrc().getLarge2x());
-        } else if (quality.equals("medium")) {
-            uri = Uri.parse(photo.getSrc().getMedium());
-        } else if (quality.equals("small")) {
-            uri = Uri.parse(photo.getSrc().getSmall());
-        } else if (quality.equals("portrait")) {
-            uri = Uri.parse(photo.getSrc().getPortrait());
-        } else if (quality.equals("landscape")) {
-            uri = Uri.parse(photo.getSrc().getLandscape());
-        } else if (quality.equals("tiny")) {
-            uri = Uri.parse(photo.getSrc().getTiny());
-        } else {
-            Toast.makeText(this, "No Quality Selected", Toast.LENGTH_SHORT).show();
-            return;
-        }
+//        if (quality.equals("original")) {
+//            uri = Uri.parse(photo.getSrc().getOriginal());
+//        } else if (quality.equals("large")) {
+//            uri = Uri.parse(photo.getSrc().getLarge());
+//        } else if (quality.equals("large2x")) {
+//            uri = Uri.parse(photo.getSrc().getLarge2x());
+//        } else if (quality.equals("medium")) {
+//            uri = Uri.parse(photo.getSrc().getMedium());
+//        } else if (quality.equals("small")) {
+//            uri = Uri.parse(photo.getSrc().getSmall());
+//        } else if (quality.equals("portrait")) {
+//            uri = Uri.parse(photo.getSrc().getPortrait());
+//        } else if (quality.equals("landscape")) {
+//            uri = Uri.parse(photo.getSrc().getLandscape());
+//        } else if (quality.equals("tiny")) {
+//            uri = Uri.parse(photo.getSrc().getTiny());
+//        } else {
+//            Toast.makeText(this, "No Quality Selected", Toast.LENGTH_SHORT).show();
+//            return;
+//        }
 
         DownloadManager.Request request = new DownloadManager.Request(uri);
 
         request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI | DownloadManager.Request.NETWORK_MOBILE)
                 .setAllowedOverRoaming(false)
-                .setTitle("WallPixels_" + quality + "_" + photo.getPhotographer())
+                .setTitle("WallPixels_" + quality + "_" + photo.getUser())
                 .setMimeType("image/jpeg")
                 .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-                .setDestinationInExternalPublicDir(Environment.DIRECTORY_PICTURES, "WallPixels_" + quality + "_" + photo.getPhotographer() + ".jpg");
+                .setDestinationInExternalPublicDir(Environment.DIRECTORY_PICTURES, "WallPixels_" + quality + "_" + photo.getUser() + ".jpg");
 
         downloadManager.enqueue(request);
 

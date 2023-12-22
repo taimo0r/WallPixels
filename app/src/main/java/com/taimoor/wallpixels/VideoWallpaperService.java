@@ -1,109 +1,67 @@
 package com.taimoor.wallpixels;
 
-import android.annotation.SuppressLint;
-import android.app.WallpaperManager;
-import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.media.MediaPlayer;
+import android.content.SharedPreferences;
+import android.net.Uri;
 import android.service.wallpaper.WallpaperService;
 import android.view.SurfaceHolder;
 
-import java.io.File;
-import java.io.IOException;
+import com.google.android.exoplayer2.ExoPlayer;
+import com.google.android.exoplayer2.MediaItem;
+import com.google.android.exoplayer2.Player;
 
 public class VideoWallpaperService extends WallpaperService {
-
-    public static final String VIDEO_PARAMS_CONTROL_ACTION = "com.taimoor.wallpixels";
-    public static final String KEY_ACTION = "music";
 
     @Override
     public Engine onCreateEngine() {
         return new VideoEngine();
     }
 
-    class VideoEngine extends Engine {
-        private MediaPlayer mediaPlayer;
-        private BroadcastReceiver broadcastReceiver;
+    private class VideoEngine extends Engine {
+
+        private ExoPlayer exoPlayer;
+        private Uri videoUri;
+        private static final long PREVIEW_DURATION_MILLIS = 15 * 1000; // 15 seconds
 
         @Override
         public void onCreate(SurfaceHolder surfaceHolder) {
             super.onCreate(surfaceHolder);
+            exoPlayer = new ExoPlayer.Builder(VideoWallpaperService.this).build();
+            exoPlayer.setVideoSurfaceHolder(surfaceHolder);
 
-            IntentFilter intentFilter = new IntentFilter(VideoWallpaperService.VIDEO_PARAMS_CONTROL_ACTION);
-            registerReceiver(broadcastReceiver = new BroadcastReceiver() {
-                @Override
-                public void onReceive(Context context, Intent intent) {
-                    boolean action = intent.getBooleanExtra(KEY_ACTION, false);
-                    if (action) {
-                        mediaPlayer.setVolume(0, 0);
-                    } else {
-                        mediaPlayer.setVolume(1.0f, 1.0f);
-                    }
-                }
-            }, intentFilter);
-        }
-
-
-        @Override
-        public void onSurfaceCreated(SurfaceHolder holder) {
-            super.onSurfaceCreated(holder);
-            mediaPlayer = new MediaPlayer();
-            mediaPlayer.setSurface(holder.getSurface());
-            try {
-                mediaPlayer.reset();
-                mediaPlayer.setDataSource(getFilesDir() + "/file.mp4");
-                mediaPlayer.setLooping(true);
-                mediaPlayer.setVideoScalingMode(MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
-                mediaPlayer.prepare();
-                mediaPlayer.start();
-                File file = new File(getFilesDir() + "/unmute");
-                if (file.exists()) mediaPlayer.setVolume(1.0f, 1.0f);
-                else mediaPlayer.setVolume(0, 0);
-            } catch (IOException e) {
-                e.printStackTrace();
+            SharedPreferences sharedPref = getSharedPreferences("WALLPIXELS_PREFS", Context.MODE_PRIVATE);
+            String videoUriString = sharedPref.getString("video_wallpaper_uri", null);
+            if (videoUriString != null) {
+                videoUri = Uri.parse(videoUriString);
             }
-        }
 
-        @Override
-        public void onSurfaceDestroyed(SurfaceHolder holder) {
-            super.onSurfaceDestroyed(holder);
-            if (mediaPlayer.isPlaying()) mediaPlayer.stop();
-            mediaPlayer.release();
-            mediaPlayer = null;
         }
 
         @Override
         public void onVisibilityChanged(boolean visible) {
             if (visible) {
-                mediaPlayer.start();
+                // Start or resume playback
+                if (exoPlayer != null) {
+                    exoPlayer.setMediaItem(MediaItem.fromUri(videoUri));
+                    exoPlayer.prepare();
+                    exoPlayer.setPlayWhenReady(true);
+                }
             } else {
-                mediaPlayer.pause();
+                // Pause playback
+                if (exoPlayer != null) {
+                    exoPlayer.setPlayWhenReady(false);
+                }
             }
         }
-
 
         @Override
         public void onDestroy() {
             super.onDestroy();
-            if (mediaPlayer != null) mediaPlayer.release();
-            unregisterReceiver(broadcastReceiver);
+            if (exoPlayer != null) {
+                exoPlayer.release();
+                exoPlayer = null;
+            }
         }
     }
-
-
-    public static void setToWallpaper(Context context) {
-        final Intent intent = new Intent(WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER);
-        intent.putExtra(WallpaperManager.EXTRA_LIVE_WALLPAPER_COMPONENT, new ComponentName(context, VideoWallpaperService.class));
-        context.startActivity(intent);
-        try {
-            WallpaperManager.getInstance(context).clear();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
 
 }

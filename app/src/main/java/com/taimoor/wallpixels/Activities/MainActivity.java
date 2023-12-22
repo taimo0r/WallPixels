@@ -10,7 +10,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -32,16 +31,14 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.taimoor.wallpixels.Adapters.CategoriesRecyclerAdapter;
 import com.taimoor.wallpixels.Adapters.CuratedRecyclerAdapter;
-import com.taimoor.wallpixels.Listeners.CuratedResponseListener;
+import com.taimoor.wallpixels.Listeners.ApiResponseListener;
 import com.taimoor.wallpixels.Listeners.ItemClickListener;
-import com.taimoor.wallpixels.Listeners.SearchResponseListener;
 import com.taimoor.wallpixels.Listeners.onRecyclerClickListener;
+import com.taimoor.wallpixels.Models.ApiResponse;
 import com.taimoor.wallpixels.Models.CategoriesModel;
-import com.taimoor.wallpixels.Models.CuratedApiResponse;
-import com.taimoor.wallpixels.Models.Photo;
-import com.taimoor.wallpixels.Models.SearchApiResponse;
+import com.taimoor.wallpixels.Models.Hit;
 import com.taimoor.wallpixels.R;
-import com.taimoor.wallpixels.RequestManager;
+import com.taimoor.wallpixels.ApiService.RequestManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -108,8 +105,6 @@ public class MainActivity extends AppCompatActivity implements onRecyclerClickLi
             }
         });
 
-        // Storage Permissions
-
 
         if (!isConnected(this)) {
             showCustomDialog();
@@ -121,8 +116,8 @@ public class MainActivity extends AppCompatActivity implements onRecyclerClickLi
         dialog.setTitle("Loading...");
         dialog.show();
 
-        manager = new RequestManager(this);
-        manager.getCuratedWallpapers(listener, "1");
+        manager = new RequestManager(MainActivity.this);
+        manager.getWallpapers(listener, "1");
 
         List<CategoriesModel> list = new ArrayList<>();
         list.add(new CategoriesModel("4K"));
@@ -156,9 +151,9 @@ public class MainActivity extends AppCompatActivity implements onRecyclerClickLi
                 dialog.show();
                 manager = new RequestManager(MainActivity.this);
                 if (searchString == null) {
-                    manager.getCuratedWallpapers(listener, "1");
+                    manager.getWallpapers(listener, "1");
                 } else {
-                    manager.searchCuratedWallpapers(responseListener, "1", searchString);
+                    manager.getSearchedWallpapers(searchListener, "1", searchString);
                 }
                 refreshLayout.setRefreshing(false);
             }
@@ -169,11 +164,10 @@ public class MainActivity extends AppCompatActivity implements onRecyclerClickLi
             public void onClick(View view) {
                 pageNo = pageNo + 1;
                 String next_page = String.valueOf(pageNo);
-                manager.getCuratedWallpapers(listener, next_page);
+                manager.getWallpapers(listener, next_page);
                 if (pageNo > 1) {
                     fabPrev.setVisibility(View.VISIBLE);
                 }
-                Toast.makeText(MainActivity.this, "" + pageNo, Toast.LENGTH_SHORT).show();
                 dialog.show();
             }
         });
@@ -184,12 +178,10 @@ public class MainActivity extends AppCompatActivity implements onRecyclerClickLi
             public void onClick(View view) {
                 pageNo = pageNo - 1;
                 String prev_page = String.valueOf(pageNo);
+                manager.getWallpapers(listener, prev_page);
                 if (pageNo == 1) {
                     fabPrev.setVisibility(View.GONE);
                 }
-                Toast.makeText(MainActivity.this, "" + pageNo, Toast.LENGTH_SHORT).show();
-                manager.getCuratedWallpapers(listener, prev_page);
-
                 dialog.show();
             }
         });
@@ -199,11 +191,10 @@ public class MainActivity extends AppCompatActivity implements onRecyclerClickLi
             public void onClick(View view) {
                 pageNo = pageNo + 1;
                 String next_page = String.valueOf(pageNo);
-                manager.searchCuratedWallpapers(responseListener, next_page, searchString);
+                manager.getSearchedWallpapers(searchListener, next_page, searchString);
                 if (pageNo > 1) {
                     fabSearchPrev.setVisibility(View.VISIBLE);
                 }
-                Toast.makeText(MainActivity.this, "" + pageNo, Toast.LENGTH_SHORT).show();
                 dialog.show();
             }
         });
@@ -214,11 +205,10 @@ public class MainActivity extends AppCompatActivity implements onRecyclerClickLi
             public void onClick(View view) {
                 pageNo = pageNo - 1;
                 String prev_page = String.valueOf(pageNo);
+                manager.getSearchedWallpapers(searchListener, prev_page, searchString);
                 if (pageNo == 1) {
                     fabSearchPrev.setVisibility(View.GONE);
                 }
-                Toast.makeText(MainActivity.this, "" + pageNo, Toast.LENGTH_SHORT).show();
-                manager.searchCuratedWallpapers(responseListener, prev_page, searchString);
                 dialog.show();
             }
         });
@@ -233,42 +223,14 @@ public class MainActivity extends AppCompatActivity implements onRecyclerClickLi
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
     }
 
-    private final CuratedResponseListener listener = new CuratedResponseListener() {
-        @Override
-        public void onFetch(CuratedApiResponse response, String message) {
 
-            if (response.getPhotos().isEmpty()) {
-                dialog.dismiss();
-                Toast.makeText(MainActivity.this, "No Wallpapers found", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            pageNo = response.getPage();
-            showData(response.getPhotos());
-        }
-
-
-        @Override
-        public void onError(String message) {
-            Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
-            dialog.dismiss();
-        }
-    };
-
-
-    private void showData(List<Photo> photos) {
+    private void showData(List<Hit> photos) {
         recyclerViewHome.setHasFixedSize(true);
         recyclerViewHome.setLayoutManager(new GridLayoutManager(this, 2));
         adapter = new CuratedRecyclerAdapter(this, photos, this);
 
         recyclerViewHome.setAdapter(adapter);
         dialog.dismiss();
-    }
-
-
-    @Override
-    public void onCLick(Photo photo) {
-        startActivity(new Intent(MainActivity.this, WallPaperActivity.class)
-                .putExtra("photo", photo));
     }
 
 
@@ -283,7 +245,7 @@ public class MainActivity extends AppCompatActivity implements onRecyclerClickLi
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                manager.searchCuratedWallpapers(responseListener, "1", query);
+                manager.getSearchedWallpapers(searchListener, "1", query);
                 searchString = query;
 
                 fabNext.setVisibility(View.GONE);
@@ -306,19 +268,42 @@ public class MainActivity extends AppCompatActivity implements onRecyclerClickLi
 
     }
 
-    private final SearchResponseListener responseListener = new SearchResponseListener() {
+    public final ApiResponseListener listener = new ApiResponseListener() {
         @Override
-        public void onFetch(SearchApiResponse response, String message) {
-            if (response.getPhotos().isEmpty()) {
-                Toast.makeText(MainActivity.this, "No Image found!", Toast.LENGTH_SHORT).show();
+        public void onFetch(ApiResponse response, String message) {
+            if (response.getHits().isEmpty()) {
+                fabSearchPrev.setVisibility(View.GONE);
+                Toast.makeText(MainActivity.this, "No Wallpapers found", Toast.LENGTH_SHORT).show();
+                pageNo = pageNo - 1;
+
+                dialog.dismiss();
                 return;
             }
-            pageNo = response.getPage();
-            int res = response.getPhotos().size();
-            Toast.makeText(MainActivity.this, "", Toast.LENGTH_SHORT).show();
-            showData(response.getPhotos());
+            showData(response.getHits());
+        }
+
+        @Override
+        public void onError(String message) {
+            Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
             dialog.dismiss();
         }
+    };
+
+
+    private final ApiResponseListener searchListener = new ApiResponseListener() {
+        @Override
+        public void onFetch(ApiResponse response, String message) {
+            if (response.getHits().isEmpty()) {
+                fabSearchPrev.setVisibility(View.GONE);
+                Toast.makeText(MainActivity.this, "No Wallpapers found!", Toast.LENGTH_SHORT).show();
+                pageNo = pageNo - 1;
+                dialog.dismiss();
+                return;
+            }
+            showData(response.getHits());
+            dialog.dismiss();
+        }
+
         @Override
         public void onError(String message) {
             dialog.dismiss();
@@ -366,8 +351,14 @@ public class MainActivity extends AppCompatActivity implements onRecyclerClickLi
     }
 
     @Override
+    public void onCLick(Hit photo) {
+        startActivity(new Intent(MainActivity.this, WallPaperActivity.class)
+                .putExtra("photo", photo));
+    }
+
+    @Override
     public void onItemClick(String category) {
-        manager.searchCuratedWallpapers(responseListener, "1", category);
+        manager.getSearchedWallpapers(searchListener, "1", category);
         searchString = category;
 
         fabNext.setVisibility(View.GONE);

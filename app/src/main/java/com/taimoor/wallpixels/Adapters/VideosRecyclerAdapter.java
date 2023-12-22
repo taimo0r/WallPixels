@@ -13,8 +13,7 @@ import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.taimoor.wallpixels.Listeners.VideoRecyclerClickListener;
-import com.taimoor.wallpixels.Models.Video;
-import com.taimoor.wallpixels.Models.VideoFile;
+import com.taimoor.wallpixels.Models.Hit;
 import com.taimoor.wallpixels.R;
 
 import java.util.List;
@@ -22,10 +21,10 @@ import java.util.List;
 public class VideosRecyclerAdapter extends RecyclerView.Adapter<VideosRecyclerAdapter.Viewholder> {
 
     Context context;
-    List<Video> list;
+    List<Hit> list;
     VideoRecyclerClickListener listener;
 
-    public VideosRecyclerAdapter(Context context, List<Video> list, VideoRecyclerClickListener listener) {
+    public VideosRecyclerAdapter(Context context, List<Hit> list, VideoRecyclerClickListener listener) {
         this.context = context;
         this.list = list;
         this.listener = listener;
@@ -43,10 +42,9 @@ public class VideosRecyclerAdapter extends RecyclerView.Adapter<VideosRecyclerAd
     @Override
     public void onBindViewHolder(@NonNull Viewholder holder, int position) {
 
-        String url = list.get(position).getVideo_files().get(0).getLink();
-        VideoFile file = list.get(position).getVideo_files().get(0);
+        String url = list.get(position).getVideos().getTiny().getUrl();
+        String user = list.get(position).getUser();
         Uri uri = Uri.parse(url);
-
 
 
         MediaItem mediaItem = MediaItem.fromUri(uri);
@@ -61,7 +59,7 @@ public class VideosRecyclerAdapter extends RecyclerView.Adapter<VideosRecyclerAd
             @Override
             public void onClick(View view) {
 
-                listener.onVideoClick(url, file);
+                listener.onVideoClick(url, user);
             }
         });
     }
@@ -80,4 +78,19 @@ public class VideosRecyclerAdapter extends RecyclerView.Adapter<VideosRecyclerAd
             playerView = itemView.findViewById(R.id.exo_player_view);
         }
     }
+
+    @Override
+    public void onViewRecycled(@NonNull Viewholder holder) {
+        if (holder.playerView.getPlayer() != null) {
+            holder.playerView.getPlayer().release();
+        }
+    }
+
+    public void updateVideos(List<Hit> newVideos) {
+        list.clear();
+        list.addAll(newVideos);
+        notifyDataSetChanged();
+    }
+
+
 }

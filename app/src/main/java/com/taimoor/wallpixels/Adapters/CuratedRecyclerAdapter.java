@@ -5,7 +5,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.ListView;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
@@ -13,17 +12,17 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.squareup.picasso.Picasso;
 import com.taimoor.wallpixels.Listeners.onRecyclerClickListener;
-import com.taimoor.wallpixels.Models.Photo;
+import com.taimoor.wallpixels.Models.Hit;
 import com.taimoor.wallpixels.R;
 
 import java.util.List;
 
 public class CuratedRecyclerAdapter extends RecyclerView.Adapter<CuratedRecyclerAdapter.ViewHolder> {
     Context context;
-    List<Photo> list;
+    List<Hit> list;
     onRecyclerClickListener listener;
 
-    public CuratedRecyclerAdapter(Context context, List<Photo> list, onRecyclerClickListener listener) {
+    public CuratedRecyclerAdapter(Context context, List<Hit> list, onRecyclerClickListener listener) {
         this.context = context;
         this.list = list;
         this.listener = listener;
@@ -39,7 +38,7 @@ public class CuratedRecyclerAdapter extends RecyclerView.Adapter<CuratedRecycler
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Picasso.get().load(list.get(position).getSrc().getLarge()).into(holder.imageViewList);
+        Picasso.get().load(list.get(position).getWebformatURL()).into(holder.imageViewList);
 
         holder.homeListContainer.setOnClickListener(new View.OnClickListener() {
             @Override

@@ -1,39 +1,37 @@
 package com.taimoor.wallpixels.Activities;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.DownloadManager;
 import android.app.WallpaperManager;
 import android.content.ComponentName;
 import android.content.ContentUris;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.res.Configuration;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
-import android.service.wallpaper.WallpaperService;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
+import com.google.android.exoplayer2.source.ClippingMediaSource;
+import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.ui.PlayerView;
+import com.google.android.exoplayer2.upstream.DefaultDataSource;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.taimoor.wallpixels.Models.Video;
-import com.taimoor.wallpixels.Models.VideoFile;
+import com.taimoor.wallpixels.FileUtils;
 import com.taimoor.wallpixels.R;
 import com.taimoor.wallpixels.VideoWallpaperService;
 
@@ -46,139 +44,121 @@ import java.util.Objects;
 
 public class FullScreenVideo extends AppCompatActivity {
 
-    FloatingActionButton fabDownloadVideo, fabWallpaperVideo;
-    PlayerView playerView;
-    String url;
-    Uri uri;
+    private FloatingActionButton fabDownloadVideo, fabWallpaperVideo;
+    private PlayerView playerView;
+    private ExoPlayer exoPlayer;
+    private String url, user;
+    private Uri uri;
 
     private ActivityResultLauncher<Intent> setWallpaper;
-    AlertDialog.Builder builder;
+    private AlertDialog.Builder builder;
 
-    VideoFile file = null;
-
-
-    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_full_screen_video);
-        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
+
+        initViews();
+        setupPlayer();
+        setupDownloadButton();
+        setupWallpaperButton();
+//        setupActivityResultLauncher();
+
+    }
+
+    private void initViews() {
         builder = new AlertDialog.Builder(this);
         fabDownloadVideo = findViewById(R.id.fab_download_video);
         fabWallpaperVideo = findViewById(R.id.fab_wallpaper_video);
         playerView = findViewById(R.id.full_screen_player);
-
-        int orientation = getResources().getConfiguration().orientation;
-        if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+    }
 
 
-            fabDownloadVideo.setTranslationY(105);
-            fabWallpaperVideo.setTranslationY(105);
-
-            if (getSupportActionBar() != null) {
-                this.getSupportActionBar().hide();
-            }
-        }
-
-
-        Toast.makeText(this, "Loading....", Toast.LENGTH_LONG).show();
-
-        file = (VideoFile) getIntent().getSerializableExtra("file");
+    private void setupPlayer() {
         url = getIntent().getStringExtra("video");
+        user = getIntent().getStringExtra("user");
         uri = Uri.parse(url);
 
-        MediaItem mediaItem = MediaItem.fromUri(uri);
-        ExoPlayer exoPlayer = new ExoPlayer.Builder(this).build();
+        exoPlayer = new ExoPlayer.Builder(this).build();
         playerView.setPlayer(exoPlayer);
 
-        exoPlayer.addMediaItem(mediaItem);
+        // Create a MediaItem from the URI
+        MediaItem mediaItem = MediaItem.fromUri(uri);
+
+        // Create a clipping media source to play only the first 15 seconds
+        long fifteenSecondsInMicroseconds = 15 * 1000000L; // 15 seconds in microseconds
+        MediaSource mediaSource = new ProgressiveMediaSource.Factory(new DefaultDataSource.Factory(this))
+                .createMediaSource(mediaItem);
+        ClippingMediaSource clippedSource = new ClippingMediaSource(mediaSource, 0, fifteenSecondsInMicroseconds);
+
+        // Prepare and play the clipped media source
+        exoPlayer.setMediaSource(clippedSource);
         exoPlayer.prepare();
-        exoPlayer.setPlayWhenReady(false);
+        exoPlayer.setPlayWhenReady(true);
+    }
 
+    private void setupDownloadButton() {
+        fabDownloadVideo.setOnClickListener(view -> showDownloadConfirmationDialog());
+    }
 
-        fabDownloadVideo.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+    private void showDownloadConfirmationDialog() {
+        builder.setTitle("Confirmation")
+                .setMessage("Do you want to download this video to your gallery?")
+                .setPositiveButton("Yes", (dialog, which) -> downloadVideo())
+                .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
+                .create()
+                .show();
+    }
 
-                builder.setTitle("Confirmation");
-                builder.setMessage("Do you want to download this video to your gallery?");
+    private void setupWallpaperButton() {
+        SharedPreferences sharedPref = getSharedPreferences("WALLPIXELS_PREFS", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString("video_wallpaper_uri", uri.toString());
+        editor.apply();
 
-                builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        downloadVideo();
-                    }
-                });
+        fabWallpaperVideo.setOnClickListener(view -> {
+            Toast.makeText(FullScreenVideo.this, "Please Download video to Set as wallpaper", Toast.LENGTH_SHORT).show();
 
-                builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                });
+            Intent intent = new Intent(
+                    WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER);
+            intent.putExtra(WallpaperManager.EXTRA_LIVE_WALLPAPER_COMPONENT,
+                    new ComponentName(this, VideoWallpaperService.class));
+            startActivity(intent);
 
-                AlertDialog dialog = builder.create();
-
-                dialog.setCanceledOnTouchOutside(false);
-                dialog.show();
-
-
-            }
         });
-
-        fabWallpaperVideo.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View view) {
-
-                Toast.makeText(FullScreenVideo.this, "Please Download video to Set as wallpaper", Toast.LENGTH_SHORT).show();
-
-                chooseVideo();
-            }
-        });
-
-
-        //Registering Activity for result
-        setWallpaper = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
-                    if (result.getResultCode() == Activity.RESULT_OK) {
-                        Intent data = result.getData();
-                        Uri uri = data.getData();
-                        assert uri != null;
-                        if ("file".equalsIgnoreCase(uri.getScheme())) {
-                            copyFile(new File(Objects.requireNonNull(uri.getPath())), new File(getFilesDir() + "/file.mp4"));
-                            VideoWallpaperService.setToWallpaper(this);
-                            return;
-                        }
-
-                        copyFile(new File(getPath(this, uri)), new File(getFilesDir() + "/file.mp4"));
-                        VideoWallpaperService.setToWallpaper(this);
-                    }
-
-                });
 
     }
+
+//    private void setupActivityResultLauncher() {
+//        setWallpaper = registerForActivityResult(
+//                new ActivityResultContracts.StartActivityForResult(),
+//                result -> {
+//                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+//                        Uri selectedUri = result.getData().getData();
+//                        if (selectedUri != null) {
+//                            String sourcePath = FileUtils.getPath(this, selectedUri);
+//                            String destinationPath = getFilesDir() + "/file.mp4";
+//                            FileUtils.copyFile(sourcePath, destinationPath);
+//                            VideoWallpaperService.setToWallpaper(this);
+//                        }
+//                    }
+//                });
+//    }
 
     private void downloadVideo() {
-        DownloadManager downloadManager = null;
-        downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-
-        DownloadManager.Request request = new DownloadManager.Request(uri);
-
-        request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI | DownloadManager.Request.NETWORK_MOBILE)
+        DownloadManager downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+        DownloadManager.Request request = new DownloadManager.Request(uri)
+                .setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI | DownloadManager.Request.NETWORK_MOBILE)
                 .setAllowedOverRoaming(false)
-                .setTitle("WallPixels_" + file.getId())
+                .setTitle("WallPixels_" + user)
                 .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-                .setDestinationInExternalPublicDir(Environment.DIRECTORY_DCIM, "WallPixels_" + file.getId() + ".mp4");
+                .setDestinationInExternalPublicDir(Environment.DIRECTORY_DCIM, "WallPixels_" + user + ".mp4");
 
         downloadManager.enqueue(request);
-
         Toast.makeText(FullScreenVideo.this, "Downloading Started!", Toast.LENGTH_SHORT).show();
-
     }
-
 
     private void chooseVideo() {
         Intent intent = new Intent();
@@ -217,14 +197,6 @@ public class FullScreenVideo extends AppCompatActivity {
         }
     }
 
-
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-        finish();
-    }
-
-    @SuppressLint("NewApi")
     public String getPath(final Context context, final Uri uri) {
         if (DocumentsContract.isDocumentUri(context, uri)) {
             if (isExternalStorageDocument(uri)) {
@@ -294,4 +266,12 @@ public class FullScreenVideo extends AppCompatActivity {
         return "com.android.providers.media.documents".equals(uri.getAuthority());
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (exoPlayer != null) {
+            exoPlayer.release();
+            exoPlayer = null; // Help the garbage collector
+        }
+    }
 }
