@@ -3,6 +3,8 @@ package com.taimoor.wallpixels.ApiService;
 import android.content.Context;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+
 import com.taimoor.wallpixels.Listeners.ApiResponseListener;
 import com.taimoor.wallpixels.Models.ApiResponse;
 
@@ -39,11 +41,11 @@ public class RequestManager {
 
         Retrofit retrofit = RequestManager.getClient();
         PixabayApiService apiService = retrofit.create(PixabayApiService.class);
-        Call<ApiResponse> call = apiService.getImages(ApiKey, page, "30");
+        Call<ApiResponse> call = apiService.getImages(ApiKey, page, "30", true);
 
-        call.enqueue(new Callback<ApiResponse>() {
+        call.enqueue(new Callback<>() {
             @Override
-            public void onResponse(Call<ApiResponse> call, Response<ApiResponse> response) {
+            public void onResponse(@NonNull Call<ApiResponse> call, @NonNull Response<ApiResponse> response) {
                 if (!response.isSuccessful()) {
                     Toast.makeText(context, response.message(), Toast.LENGTH_SHORT).show();
                     return;
@@ -52,7 +54,7 @@ public class RequestManager {
             }
 
             @Override
-            public void onFailure(Call<ApiResponse> call, Throwable t) {
+            public void onFailure(@NonNull Call<ApiResponse> call, @NonNull Throwable t) {
                 listener.onError(t.getMessage());
             }
         });
@@ -64,11 +66,11 @@ public class RequestManager {
 
         Retrofit retrofit = RequestManager.getClient();
         PixabayApiService apiService = retrofit.create(PixabayApiService.class);
-        Call<ApiResponse> call = apiService.searchImages(ApiKey, query, page, "30");
+        Call<ApiResponse> call = apiService.searchImages(ApiKey, query, page, "30", true);
 
-        call.enqueue(new Callback<ApiResponse>() {
+        call.enqueue(new Callback<>() {
             @Override
-            public void onResponse(Call<ApiResponse> call, Response<ApiResponse> response) {
+            public void onResponse(@NonNull Call<ApiResponse> call, @NonNull Response<ApiResponse> response) {
                 if (!response.isSuccessful()) {
                     Toast.makeText(context, response.message(), Toast.LENGTH_SHORT).show();
                     return;
@@ -77,7 +79,7 @@ public class RequestManager {
             }
 
             @Override
-            public void onFailure(Call<ApiResponse> call, Throwable t) {
+            public void onFailure(@NonNull Call<ApiResponse> call, @NonNull Throwable t) {
                 listener.onError(t.getMessage());
             }
         });
@@ -87,11 +89,11 @@ public class RequestManager {
     public void getVideoWallpapers(ApiResponseListener listener, String page) {
         Retrofit retrofit = RequestManager.getClient();
         PixabayApiService apiService = retrofit.create(PixabayApiService.class);
-        Call<ApiResponse> call = apiService.getVideos(ApiKey, page, "20");
+        Call<ApiResponse> call = apiService.getVideos(ApiKey, page, "20", true);
 
-        call.enqueue(new Callback<ApiResponse>() {
+        call.enqueue(new Callback<>() {
             @Override
-            public void onResponse(Call<ApiResponse> call, Response<ApiResponse> response) {
+            public void onResponse(@NonNull Call<ApiResponse> call, @NonNull Response<ApiResponse> response) {
                 if (!response.isSuccessful()) {
                     Toast.makeText(context, "Error: " + response.message(), Toast.LENGTH_SHORT).show();
                     return;
@@ -100,7 +102,7 @@ public class RequestManager {
             }
 
             @Override
-            public void onFailure(Call<ApiResponse> call, Throwable t) {
+            public void onFailure(@NonNull Call<ApiResponse> call, @NonNull Throwable t) {
                 listener.onError(t.getMessage());
             }
         });
@@ -111,11 +113,11 @@ public class RequestManager {
 
         Retrofit retrofit = RequestManager.getClient();
         PixabayApiService apiService = retrofit.create(PixabayApiService.class);
-        Call<ApiResponse> call = apiService.getSearchedVideos(ApiKey, query, page, "20");
+        Call<ApiResponse> call = apiService.getSearchedVideos(ApiKey, query, page, "20", true);
 
-        call.enqueue(new Callback<ApiResponse>() {
+        call.enqueue(new Callback<>() {
             @Override
-            public void onResponse(Call<ApiResponse> call, Response<ApiResponse> response) {
+            public void onResponse(@NonNull Call<ApiResponse> call, @NonNull Response<ApiResponse> response) {
                 if (!response.isSuccessful()) {
                     Toast.makeText(context, response.message(), Toast.LENGTH_SHORT).show();
                     return;
@@ -124,7 +126,7 @@ public class RequestManager {
             }
 
             @Override
-            public void onFailure(Call<ApiResponse> call, Throwable t) {
+            public void onFailure(@NonNull Call<ApiResponse> call, @NonNull Throwable t) {
                 listener.onError(t.getMessage());
             }
         });
@@ -137,20 +139,24 @@ public class RequestManager {
         Call<ApiResponse> getImages(
                 @Query("key") String apiKey,
                 @Query("page") String page,
-                @Query("per_page") String per_page);
+                @Query("per_page") String per_page,
+                @Query("safesearch") boolean value);
+
 
         @GET("api/")
         Call<ApiResponse> searchImages(
                 @Query("key") String apiKey,
                 @Query("q") String query,
                 @Query("page") String page,
-                @Query("per_page") String per_page);
+                @Query("per_page") String per_page,
+                @Query("safesearch") boolean value);
 
         @GET("api/videos/")
         Call<ApiResponse> getVideos(
                 @Query("key") String apiKey,
                 @Query("page") String page,
-                @Query("per_page") String per_page);
+                @Query("per_page") String per_page,
+                @Query("safesearch") boolean value);
 
 
         @GET("api/videos/")
@@ -158,7 +164,8 @@ public class RequestManager {
                 @Query("key") String apiKey,
                 @Query("q") String query,
                 @Query("page") String page,
-                @Query("per_page") String per_page);
+                @Query("per_page") String per_page,
+                @Query("safesearch") boolean value);
 
     }
 
