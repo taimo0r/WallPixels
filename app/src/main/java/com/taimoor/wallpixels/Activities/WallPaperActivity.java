@@ -1,26 +1,20 @@
 package com.taimoor.wallpixels.Activities;
 
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.app.DownloadManager;
 import android.app.WallpaperManager;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.view.Gravity;
-import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.squareup.picasso.Picasso;
@@ -32,9 +26,7 @@ public class WallPaperActivity extends AppCompatActivity {
     ImageView imageViewWallpaper;
     FloatingActionButton fabDownload, fabWallpaper;
     Hit photo;
-    AlertDialog alertDialog;
     AlertDialog.Builder builder;
-    TextView original, large, large2x, small, medium, portrait, landscape, tiny;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,35 +48,36 @@ public class WallPaperActivity extends AppCompatActivity {
         photo = (Hit) getIntent().getSerializableExtra("photo");
         Picasso.get().load(photo.getWebformatURL()).placeholder(R.drawable.image).into(imageViewWallpaper);
 
+        fabDownload.setOnClickListener(view -> {
 
-        fabDownload.setOnClickListener(view -> selectQuality());
+            builder.setTitle("Confirmation");
+            builder.setMessage("Do you want to download this wallpaper to your Gallery?");
 
-        fabWallpaper.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                builder.setTitle("Confirmation");
-                builder.setMessage("Do you want to set this image as your wallpaper?");
+            builder.setPositiveButton("Yes", (dialog, which) -> downloadImg());
 
-                builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        setWallpaper();
-                    }
-                });
+            builder.setNegativeButton("No", (dialog, which) -> dialog.dismiss());
 
-                builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                });
+            AlertDialog dialog = builder.create();
 
-                AlertDialog dialog = builder.create();
+            dialog.setCanceledOnTouchOutside(false);
+            dialog.show();
+        });
 
-                dialog.setCanceledOnTouchOutside(false);
-                dialog.show();
 
-            }
+        fabWallpaper.setOnClickListener(view -> {
+
+            builder.setTitle("Confirmation");
+            builder.setMessage("Do you want to set this image as your wallpaper?");
+
+            builder.setPositiveButton("Yes", (dialog, which) -> setWallpaper());
+
+            builder.setNegativeButton("No", (dialog, which) -> dialog.dismiss());
+
+            AlertDialog dialog = builder.create();
+
+            dialog.setCanceledOnTouchOutside(false);
+            dialog.show();
+
         });
 
 
@@ -103,129 +96,12 @@ public class WallPaperActivity extends AppCompatActivity {
         }
     }
 
-    private void selectQuality() {
-        final AlertDialog.Builder alert = new AlertDialog.Builder(WallPaperActivity.this);
-        View dialogView = getLayoutInflater().inflate(R.layout.download_dialog, null);
-
-
-        original = (TextView) dialogView.findViewById(R.id.original_txt);
-        landscape = (TextView) dialogView.findViewById(R.id.landscape_txt);
-        large = (TextView) dialogView.findViewById(R.id.large_txt);
-        large2x = (TextView) dialogView.findViewById(R.id.large2x_txt);
-        medium = (TextView) dialogView.findViewById(R.id.medium_txt);
-        small = (TextView) dialogView.findViewById(R.id.small_txt);
-        portrait = (TextView) dialogView.findViewById(R.id.portrait_txt);
-        tiny = (TextView) dialogView.findViewById(R.id.tiny_txt);
-
-        alert.setView(dialogView);
-        alertDialog = alert.create();
-        //  alertDialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation_2;
-        alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-
-
-        Window window = alertDialog.getWindow();
-        WindowManager.LayoutParams wlp = window.getAttributes();
-        wlp.windowAnimations = R.style.DownloadDialogAnimation;
-
-        wlp.gravity = Gravity.BOTTOM;
-        wlp.flags &= ~WindowManager.LayoutParams.FLAG_DIM_BEHIND;
-        window.setAttributes(wlp);
-
-        original.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                downloadImg("original");
-                alertDialog.dismiss();
-            }
-        });
-
-        large.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                downloadImg("large");
-                alertDialog.dismiss();
-            }
-        });
-
-        medium.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                downloadImg("medium");
-                alertDialog.dismiss();
-            }
-        });
-
-        small.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                downloadImg("small");
-                alertDialog.dismiss();
-            }
-        });
-
-        large2x.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                downloadImg("large2x");
-                alertDialog.dismiss();
-            }
-        });
-
-        portrait.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                downloadImg("portrait");
-                alertDialog.dismiss();
-            }
-        });
-
-        landscape.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                downloadImg("landscape");
-                alertDialog.dismiss();
-            }
-        });
-
-        tiny.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                downloadImg("tiny");
-                alertDialog.dismiss();
-            }
-        });
-
-        alertDialog.show();
-
-
-    }
-
-    private void downloadImg(String quality) {
+    private void downloadImg() {
 
         DownloadManager downloadManager = null;
         downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
         Uri uri = Uri.parse(photo.getWebformatURL());
 
-//        if (quality.equals("original")) {
-//            uri = Uri.parse(photo.getSrc().getOriginal());
-//        } else if (quality.equals("large")) {
-//            uri = Uri.parse(photo.getSrc().getLarge());
-//        } else if (quality.equals("large2x")) {
-//            uri = Uri.parse(photo.getSrc().getLarge2x());
-//        } else if (quality.equals("medium")) {
-//            uri = Uri.parse(photo.getSrc().getMedium());
-//        } else if (quality.equals("small")) {
-//            uri = Uri.parse(photo.getSrc().getSmall());
-//        } else if (quality.equals("portrait")) {
-//            uri = Uri.parse(photo.getSrc().getPortrait());
-//        } else if (quality.equals("landscape")) {
-//            uri = Uri.parse(photo.getSrc().getLandscape());
-//        } else if (quality.equals("tiny")) {
-//            uri = Uri.parse(photo.getSrc().getTiny());
-//        } else {
-//            Toast.makeText(this, "No Quality Selected", Toast.LENGTH_SHORT).show();
-//            return;
-//        }
 
         DownloadManager.Request request = new DownloadManager.Request(uri);
 
