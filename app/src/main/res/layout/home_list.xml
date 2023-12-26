@@ -14,4 +14,10 @@
         android:layout_height="match_parent"
         android:scaleType="centerCrop"/>
 
+    <com.google.android.material.chip.Chip
+        android:id="@+id/userName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="By: Taimo_0r"/>
+
 </androidx.cardview.widget.CardView>

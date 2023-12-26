@@ -1,5 +1,6 @@
 package com.taimoor.wallpixels.Activities;
 
+import android.app.Dialog;
 import android.app.DownloadManager;
 import android.app.WallpaperManager;
 import android.content.Context;
@@ -8,9 +9,13 @@ import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
@@ -20,13 +25,20 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.squareup.picasso.Picasso;
 import com.taimoor.wallpixels.Models.Hit;
 import com.taimoor.wallpixels.R;
+import com.taimoor.wallpixels.Utils;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 public class WallPaperActivity extends AppCompatActivity {
 
     ImageView imageViewWallpaper;
+    CircleImageView userImage;
     FloatingActionButton fabDownload, fabWallpaper;
     Hit photo;
-    AlertDialog.Builder builder;
+    Dialog dialog;
+    Button cancelBtn, confirmBtn;
+    TextView descTextDialog, username, downloads, views, likes;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,48 +48,68 @@ public class WallPaperActivity extends AppCompatActivity {
         setContentView(R.layout.activity_wall_paper);
 
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        builder = new AlertDialog.Builder(this);
-
 
         imageViewWallpaper = findViewById(R.id.imageview_wallpaper);
         fabDownload = findViewById(R.id.fab_download);
         fabWallpaper = findViewById(R.id.fab_wallpaper);
+        userImage = findViewById(R.id.userImage);
+        username = findViewById(R.id.userName);
+        downloads = findViewById(R.id.downloadCount);
+        views = findViewById(R.id.viewsCount);
+        likes = findViewById(R.id.likesCount);
+
+        dialog = new Dialog(WallPaperActivity.this);
+        dialog.setContentView(R.layout.custom_dialog_box);
+        dialog.getWindow().setLayout(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        dialog.getWindow().setBackgroundDrawable(getDrawable(R.drawable.custom_dialog_bg));
+        dialog.setCancelable(false);
+
+        cancelBtn = dialog.findViewById(R.id.cancel_button);
+        confirmBtn = dialog.findViewById(R.id.confirm_action);
+        descTextDialog = dialog.findViewById(R.id.descText);
 
 
         Toast.makeText(this, "Loading....", Toast.LENGTH_SHORT).show();
         photo = (Hit) getIntent().getSerializableExtra("photo");
-        Picasso.get().load(photo.getLargeImageURL()).placeholder(R.drawable.image).into(imageViewWallpaper);
+        Picasso.get().load(photo.getLargeImageURL()).into(imageViewWallpaper);
+
+        Picasso.get().load(photo.getUserImageURL()).error(R.drawable.user_icon).into(userImage);
+        username.setText(photo.getUser());
+        downloads.setText(Utils.convertToKilo(photo.getDownloads()));
+        views.setText(Utils.convertToKilo(photo.getViews()));
+        likes.setText(Utils.convertToKilo(photo.getLikes()));
 
         fabDownload.setOnClickListener(view -> {
 
-            builder.setTitle("Confirmation");
-            builder.setMessage("Do you want to download this wallpaper to your Gallery?");
+            descTextDialog.setText("Do you want to download this wallpaper to your Gallery?");
 
-            builder.setPositiveButton("Yes", (dialog, which) -> downloadImg());
+            confirmBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    downloadImg();
+                    dialog.dismiss();
+                }
+            });
+            cancelBtn.setOnClickListener(view1 -> dialog.dismiss());
 
-            builder.setNegativeButton("No", (dialog, which) -> dialog.dismiss());
-
-            AlertDialog dialog = builder.create();
-
-            dialog.setCanceledOnTouchOutside(false);
             dialog.show();
         });
 
 
         fabWallpaper.setOnClickListener(view -> {
 
-            builder.setTitle("Confirmation");
-            builder.setMessage("Do you want to set this image as your wallpaper?");
+            descTextDialog.setText("Do you want to set this image as your wallpaper?");
 
-            builder.setPositiveButton("Yes", (dialog, which) -> setWallpaper());
+            confirmBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    setWallpaper();
+                    dialog.dismiss();
+                }
+            });
+            cancelBtn.setOnClickListener(view13 -> dialog.dismiss());
 
-            builder.setNegativeButton("No", (dialog, which) -> dialog.dismiss());
-
-            AlertDialog dialog = builder.create();
-
-            dialog.setCanceledOnTouchOutside(false);
             dialog.show();
-
         });
 
 
@@ -110,7 +142,7 @@ public class WallPaperActivity extends AppCompatActivity {
                 .setMimeType("image/jpeg")
                 .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
 
-                .setDestinationInExternalPublicDir(Environment.DIRECTORY_PICTURES,  "WallPixels_" + photo.getUser() + ".jpg");
+                .setDestinationInExternalPublicDir(Environment.DIRECTORY_PICTURES, "WallPixels_" + photo.getUser() + ".jpg");
 
         downloadManager.enqueue(request);
 

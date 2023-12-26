@@ -244,9 +244,8 @@ public class VideosActivity extends AppCompatActivity implements VideoRecyclerCl
     }
 
     @Override
-    public void onVideoClick(String url, String user) {
+    public void onVideoClick(Hit video) {
         startActivity(new Intent(VideosActivity.this, FullScreenVideo.class)
-                .putExtra("video", url)
-                .putExtra("user", user));
+                .putExtra("video", video));
     }
 }

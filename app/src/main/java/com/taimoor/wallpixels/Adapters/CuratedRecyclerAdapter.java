@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.chip.Chip;
 import com.squareup.picasso.Picasso;
 import com.taimoor.wallpixels.Listeners.onRecyclerClickListener;
 import com.taimoor.wallpixels.Models.Hit;
@@ -39,8 +40,9 @@ public class CuratedRecyclerAdapter extends RecyclerView.Adapter<CuratedRecycler
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Picasso.get().load(list.get(position).getLargeImageURL()).into(holder.imageViewList);
-
         holder.homeListContainer.setOnClickListener(view -> listener.onCLick(list.get(holder.getAdapterPosition())));
+        holder.username.setText("By: " + list.get(position).getUser());
+
     }
 
     @Override
@@ -52,12 +54,14 @@ public class CuratedRecyclerAdapter extends RecyclerView.Adapter<CuratedRecycler
 
         CardView homeListContainer;
         ImageView imageViewList;
+        Chip username;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
 
             homeListContainer = itemView.findViewById(R.id.home_list_container);
             imageViewList = itemView.findViewById(R.id.imageview_list);
+            username = itemView.findViewById(R.id.userName);
 
         }
     }

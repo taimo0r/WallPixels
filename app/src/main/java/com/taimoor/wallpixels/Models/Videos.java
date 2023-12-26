@@ -1,6 +1,8 @@
 package com.taimoor.wallpixels.Models;
 
-public class Videos {
+import java.io.Serializable;
+
+public class Videos implements Serializable {
 
     private VideoDetails large;
     private VideoDetails medium;

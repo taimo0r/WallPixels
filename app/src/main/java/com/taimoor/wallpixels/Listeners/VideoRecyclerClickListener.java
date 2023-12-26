@@ -1,6 +1,8 @@
 package com.taimoor.wallpixels.Listeners;
 
+import com.taimoor.wallpixels.Models.Hit;
+
 public interface VideoRecyclerClickListener {
-    void onVideoClick(String url, String user);
+    void onVideoClick(Hit video);
 
 }

@@ -1,5 +1,6 @@
 package com.taimoor.wallpixels.Activities;
 
+import android.app.Dialog;
 import android.app.DownloadManager;
 import android.app.WallpaperManager;
 import android.content.ComponentName;
@@ -9,27 +10,40 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.squareup.picasso.Callback;
+import com.squareup.picasso.Picasso;
+import com.taimoor.wallpixels.Models.Hit;
 import com.taimoor.wallpixels.R;
+import com.taimoor.wallpixels.Utils;
 import com.taimoor.wallpixels.VideoWallpaperService;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 public class FullScreenVideo extends AppCompatActivity {
 
     private FloatingActionButton fabDownloadVideo, fabWallpaperVideo;
     private PlayerView playerView;
     private ExoPlayer exoPlayer;
+    CircleImageView userImage;
+    Hit video;
     private String user;
-    private Uri uri;
-    private AlertDialog.Builder builder;
+    private Uri uri, wallpaperUri;
+    Dialog dialog;
+    Button cancelBtn, confirmBtn;
+    TextView descTextDialog, username, downloads, views, likes;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,24 +54,44 @@ public class FullScreenVideo extends AppCompatActivity {
 
         initViews();
         setupPlayer();
+        setupDialogBox();
         setupDownloadButton();
         setupWallpaperButton();
-//        setupActivityResultLauncher();
 
     }
 
     private void initViews() {
-        builder = new AlertDialog.Builder(this);
         fabDownloadVideo = findViewById(R.id.fab_download_video);
         fabWallpaperVideo = findViewById(R.id.fab_wallpaper_video);
         playerView = findViewById(R.id.full_screen_player);
+        userImage = findViewById(R.id.userImage);
+        username = findViewById(R.id.userName);
+        downloads = findViewById(R.id.downloadCount);
+        views = findViewById(R.id.viewsCount);
+        likes = findViewById(R.id.likesCount);
     }
 
 
     private void setupPlayer() {
-        String url = getIntent().getStringExtra("video");
-        user = getIntent().getStringExtra("user");
+        video = (Hit) getIntent().getSerializableExtra("video");
+        String url = video.getVideos().getSmall().getUrl();
+        String wallpaperUrl = video.getVideos().getLarge().getUrl();
+        user = video.getUser();
         uri = Uri.parse(url);
+        wallpaperUri = Uri.parse(wallpaperUrl);
+
+//        Picasso.get().load(video.getUserImageURL()).into(userImage);
+
+        Picasso.get()
+                .load(video.getUserImageURL())
+                .error(R.drawable.user_icon)
+                .into(userImage);
+
+
+        username.setText(user);
+        downloads.setText(Utils.convertToKilo(video.getDownloads()));
+        views.setText(Utils.convertToKilo(video.getViews()));
+        likes.setText(Utils.convertToKilo(video.getLikes()));
 
         exoPlayer = new ExoPlayer.Builder(this).build();
         playerView.setPlayer(exoPlayer);
@@ -66,22 +100,38 @@ public class FullScreenVideo extends AppCompatActivity {
         exoPlayer.setPlayWhenReady(false);
     }
 
+    private void setupDialogBox() {
+        dialog = new Dialog(this);
+        dialog.setContentView(R.layout.custom_dialog_box);
+        dialog.getWindow().setLayout(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        dialog.getWindow().setBackgroundDrawable(getDrawable(R.drawable.custom_dialog_bg));
+        dialog.setCancelable(false);
+
+        cancelBtn = dialog.findViewById(R.id.cancel_button);
+        confirmBtn = dialog.findViewById(R.id.confirm_action);
+        descTextDialog = dialog.findViewById(R.id.descText);
+    }
+
     private void setupDownloadButton() {
         fabDownloadVideo.setOnClickListener(view -> showDownloadConfirmationDialog());
     }
 
     private void showDownloadConfirmationDialog() {
-        builder.setTitle("Confirmation")
-                .setMessage("Do you want to download this video to your gallery?")
-                .setPositiveButton("Yes", (dialog, which) -> downloadVideo())
-                .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
-                .create()
-                .show();
+
+        descTextDialog.setText("Do you want to download this video to your gallery?");
+
+        confirmBtn.setOnClickListener(view -> {
+            downloadVideo();
+            dialog.dismiss();
+        });
+        cancelBtn.setOnClickListener(view1 -> dialog.dismiss());
+
+        dialog.show();
     }
 
     private void setupWallpaperButton() {
 
-        saveVideoUriToPreferences(uri);
+        saveVideoUriToPreferences(wallpaperUri);
 
         fabWallpaperVideo.setOnClickListener(view -> {
             Intent intent = new Intent(
@@ -106,7 +156,7 @@ public class FullScreenVideo extends AppCompatActivity {
         DownloadManager.Request request = new DownloadManager.Request(uri)
                 .setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI | DownloadManager.Request.NETWORK_MOBILE)
                 .setAllowedOverRoaming(false)
-                .setTitle("WallPixels_Live_" + user + "_Pixabay" )
+                .setTitle("WallPixels_Live_" + user + "_Pixabay")
                 .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
                 .setDestinationInExternalPublicDir(Environment.DIRECTORY_PICTURES, "WallPixels_" + user + ".mp4");
 

@@ -43,9 +43,9 @@ public class VideosRecyclerAdapter extends RecyclerView.Adapter<VideosRecyclerAd
     public void onBindViewHolder(@NonNull Viewholder holder, int position) {
 
         String url = list.get(position).getVideos().getSmall().getUrl();
+        String wallpaperUrl = list.get(position).getVideos().getLarge().getUrl();
         String user = list.get(position).getUser();
         Uri uri = Uri.parse(url);
-
 
         MediaItem mediaItem = MediaItem.fromUri(uri);
         ExoPlayer exoPlayer = new ExoPlayer.Builder(context).build();
@@ -55,7 +55,7 @@ public class VideosRecyclerAdapter extends RecyclerView.Adapter<VideosRecyclerAd
         exoPlayer.prepare();
         exoPlayer.setPlayWhenReady(false);
 
-        holder.playerView.setOnClickListener(view -> listener.onVideoClick(url, user));
+        holder.playerView.setOnClickListener(view -> listener.onVideoClick(list.get(holder.getAdapterPosition())));
     }
 
     @Override

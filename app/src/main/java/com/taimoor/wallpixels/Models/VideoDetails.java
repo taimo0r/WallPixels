@@ -1,6 +1,8 @@
 package com.taimoor.wallpixels.Models;
 
-public class VideoDetails {
+import java.io.Serializable;
+
+public class VideoDetails implements Serializable {
 
     private String url;
     private int width;
