@@ -30,9 +30,11 @@ To get started with Wallpixels:
 - Download your favorites with different quality options.
 - Set stunning wallpapers or videos as your device's home screen background.
 
-<img src="Screenshots/WallPixels_fullscreen_wallpaper.png" alt="Wallpaper Screen" width="400"/>            <img src="Screenshots/WallPixels_FullscreenWallpaper.png" alt="Wallpaper Download Screen" width="400"/>  
+<img src="Screenshots/Samsung Galaxy Note 10+ Screenshot 1.png" alt="Wallpaper Screen" width="400"/>            <img src="Screenshots/Samsung Galaxy Note 10+ Screenshot 2.png" alt="Wallpaper Download Screen" width="400"/>  
 
-<img src="Screenshots/WallPixels_VIdeosActivity.png" alt="Video Wallpaper Screen" width="400"/>            <img src="Screenshots/WallPixels_FullscreenVideos.png" alt="Fullscreen Videos Screen" width="400"/>  
+<img src="Samsung Galaxy Note 10+ Screenshot 4.png.png" alt="Video Wallpaper Screen" width="400"/>            <img src="Screenshots/Samsung Galaxy Note 10+ Screenshot 5.png" alt="Fullscreen Videos Screen" width="400"/>  
+
+<img src="Screenshots/Samsung Galaxy Note 10+ Screenshot 3.png" alt="Fullscreen Videos Screen" width="400"/> 
 
 ## Contributing
 
