@@ -13,6 +13,7 @@ import android.os.Environment;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,8 +22,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.ui.PlayerView;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import com.taimoor.wallpixels.Models.Hit;
 import com.taimoor.wallpixels.R;
@@ -33,9 +32,9 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 public class FullScreenVideo extends AppCompatActivity {
 
-    private FloatingActionButton fabDownloadVideo, fabWallpaperVideo;
     private PlayerView playerView;
     private ExoPlayer exoPlayer;
+    ImageButton favBtn, downloadBtn, wallpaperBtn;
     CircleImageView userImage;
     Hit video;
     private String user;
@@ -61,9 +60,9 @@ public class FullScreenVideo extends AppCompatActivity {
     }
 
     private void initViews() {
-        fabDownloadVideo = findViewById(R.id.fab_download_video);
-        fabWallpaperVideo = findViewById(R.id.fab_wallpaper_video);
         playerView = findViewById(R.id.full_screen_player);
+        downloadBtn = findViewById(R.id.download_btn);
+        wallpaperBtn = findViewById(R.id.wallpaper_btn);
         userImage = findViewById(R.id.userImage);
         username = findViewById(R.id.userName);
         downloads = findViewById(R.id.downloadCount);
@@ -80,13 +79,11 @@ public class FullScreenVideo extends AppCompatActivity {
         uri = Uri.parse(url);
         wallpaperUri = Uri.parse(wallpaperUrl);
 
-//        Picasso.get().load(video.getUserImageURL()).into(userImage);
-
-        Picasso.get()
-                .load(video.getUserImageURL())
-                .error(R.drawable.user_icon)
-                .into(userImage);
-
+        if (video.getUserImageURL() != null && !video.getUserImageURL().isEmpty()){
+            Picasso.get().load(video.getUserImageURL()).error(R.drawable.user_icon).into(userImage);
+        }else {
+            userImage.setImageResource(R.drawable.user_icon);
+        }
 
         username.setText(user);
         downloads.setText(Utils.convertToKilo(video.getDownloads()));
@@ -113,7 +110,7 @@ public class FullScreenVideo extends AppCompatActivity {
     }
 
     private void setupDownloadButton() {
-        fabDownloadVideo.setOnClickListener(view -> showDownloadConfirmationDialog());
+        downloadBtn.setOnClickListener(view -> showDownloadConfirmationDialog());
     }
 
     private void showDownloadConfirmationDialog() {
@@ -133,7 +130,7 @@ public class FullScreenVideo extends AppCompatActivity {
 
         saveVideoUriToPreferences(wallpaperUri);
 
-        fabWallpaperVideo.setOnClickListener(view -> {
+        wallpaperBtn.setOnClickListener(view -> {
             Intent intent = new Intent(
                     WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER);
             intent.putExtra(WallpaperManager.EXTRA_LIVE_WALLPAPER_COMPONENT,
@@ -169,7 +166,7 @@ public class FullScreenVideo extends AppCompatActivity {
         super.onDestroy();
         if (exoPlayer != null) {
             exoPlayer.release();
-            exoPlayer = null; // Help the garbage collector
+            exoPlayer = null;
         }
     }
 }

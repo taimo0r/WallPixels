@@ -13,7 +13,6 @@ import android.provider.Settings;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Toast;
 
@@ -38,6 +37,7 @@ import com.taimoor.wallpixels.Models.CategoriesModel;
 import com.taimoor.wallpixels.Models.Hit;
 import com.taimoor.wallpixels.R;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,7 +65,6 @@ public class MainActivity extends AppCompatActivity implements onRecyclerClickLi
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
-
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         recyclerViewHome = findViewById(R.id.recycler_home);
@@ -76,7 +75,6 @@ public class MainActivity extends AppCompatActivity implements onRecyclerClickLi
         fabSearchPrev = findViewById(R.id.fab_search_prev);
         refreshLayout = findViewById(R.id.swipe_refresh);
         bottomNavigationView = findViewById(R.id.bottom_nav_view);
-
 
         bottomNavigationView.setSelectedItemId(R.id.wallpaper_activity);
 
@@ -97,7 +95,6 @@ public class MainActivity extends AppCompatActivity implements onRecyclerClickLi
 
         if (!isConnected(this)) {
             showCustomDialog();
-            //    return;
         }
 
 
@@ -311,9 +308,11 @@ public class MainActivity extends AppCompatActivity implements onRecyclerClickLi
     }
 
     @Override
-    public void onCLick(Hit photo) {
+    public View.OnClickListener onCLick(List<Hit> photo, int selectedPosition) {
         startActivity(new Intent(MainActivity.this, WallPaperActivity.class)
-                .putExtra("photo", photo));
+                .putExtra("photo", (Serializable) photo)
+                .putExtra("selectedImagePosition",selectedPosition));
+        return null;
     }
 
     @Override

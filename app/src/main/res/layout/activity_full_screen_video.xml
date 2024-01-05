@@ -19,14 +19,16 @@
         android:id="@+id/likes_count"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@id/views_count"
+        android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="15dp"
+        android:layout_marginBottom="150dp"
         android:gravity="center_horizontal"
         android:orientation="vertical">
 
         <ImageButton
+            android:contentDescription="Button to add wallpaper to favourites"
+            android:id="@+id/fav_btn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:backgroundTint="#00000000"
@@ -36,23 +38,12 @@
             android:id="@+id/likesCount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="11.2K"
             android:textColor="@color/white" />
 
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/views_count"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@id/download_count"
-        android:layout_alignParentEnd="true"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="15dp"
-        android:gravity="center_horizontal"
-        android:orientation="vertical">
 
         <ImageButton
+            android:contentDescription="Button to set wallpaper to screen"
+            android:id="@+id/wallpaper_btn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:backgroundTint="#00000000"
@@ -62,23 +53,11 @@
             android:id="@+id/viewsCount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="11.2K"
             android:textColor="@color/white" />
 
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/download_count"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@id/fab_download_video"
-        android:layout_alignParentEnd="true"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="150dp"
-        android:gravity="center_horizontal"
-        android:orientation="vertical">
-
         <ImageButton
+            android:contentDescription="Button to download wallpaper to gallery"
+            android:id="@+id/download_btn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:backgroundTint="#00000000"
@@ -88,7 +67,6 @@
             android:id="@+id/downloadCount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="11.2K"
             android:textColor="@color/white" />
 
     </LinearLayout>
@@ -107,7 +85,7 @@
             android:id="@+id/userImage"
             android:layout_width="55dp"
             android:layout_height="60dp"
-            android:src="@drawable/image"
+            android:src="@drawable/user_icon"
             app:civ_border_width="2dp"/>
 
 
@@ -116,34 +94,9 @@
             android:id="@+id/userName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="11.2K"
             android:textColor="@color/white" />
 
     </LinearLayout>
 
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab_download_video"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentBottom="true"
-        android:layout_marginEnd="16dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="80dp"
-        android:src="@drawable/icon_download" />
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab_wallpaper_video"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="80dp"
-        android:layout_toStartOf="@id/fab_download_video"
-        android:src="@drawable/icon_wallpaper" />
 
 </RelativeLayout>

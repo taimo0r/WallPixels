@@ -5,7 +5,6 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.service.wallpaper.WallpaperService;
 import android.view.SurfaceHolder;
-import android.widget.Toast;
 
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlayer;
@@ -57,7 +56,6 @@ public class VideoWallpaperService extends WallpaperService {
 
         @Override
         public void onDestroy() {
-            Toast.makeText(context, "Wallpaper Set!", Toast.LENGTH_SHORT).show();
             if (exoPlayer != null) {
                 exoPlayer.release();
                 exoPlayer = null;

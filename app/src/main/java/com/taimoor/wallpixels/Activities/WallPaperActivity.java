@@ -5,38 +5,46 @@ import android.app.DownloadManager;
 import android.app.WallpaperManager;
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.view.View;
+import android.util.DisplayMetrics;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.ImageView;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AlertDialog;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.viewpager2.widget.ViewPager2;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.squareup.picasso.Picasso;
+import com.taimoor.wallpixels.Adapters.ImagePagerAdapter;
 import com.taimoor.wallpixels.Models.Hit;
 import com.taimoor.wallpixels.R;
 import com.taimoor.wallpixels.Utils;
+
+import java.io.IOException;
+import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
 public class WallPaperActivity extends AppCompatActivity {
 
-    ImageView imageViewWallpaper;
+    ViewPager2 viewPagerImages;
     CircleImageView userImage;
-    FloatingActionButton fabDownload, fabWallpaper;
-    Hit photo;
+    ImageButton downloadBtn, wallpaperBtn, favBtn;
     Dialog dialog;
     Button cancelBtn, confirmBtn;
+    int newPosition;
     TextView descTextDialog, username, downloads, views, likes;
 
 
@@ -49,9 +57,9 @@ public class WallPaperActivity extends AppCompatActivity {
 
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
-        imageViewWallpaper = findViewById(R.id.imageview_wallpaper);
-        fabDownload = findViewById(R.id.fab_download);
-        fabWallpaper = findViewById(R.id.fab_wallpaper);
+        viewPagerImages = findViewById(R.id.viewPagerImages);
+        downloadBtn = findViewById(R.id.download_btn);
+        wallpaperBtn = findViewById(R.id.wallpaper_btn);
         userImage = findViewById(R.id.userImage);
         username = findViewById(R.id.userName);
         downloads = findViewById(R.id.downloadCount);
@@ -68,27 +76,33 @@ public class WallPaperActivity extends AppCompatActivity {
         confirmBtn = dialog.findViewById(R.id.confirm_action);
         descTextDialog = dialog.findViewById(R.id.descText);
 
+        List<Hit> photo = (List<Hit>) getIntent().getSerializableExtra("photo");
+        ImagePagerAdapter adapter = new ImagePagerAdapter(this, photo);
+        viewPagerImages.setAdapter(adapter);
 
-        Toast.makeText(this, "Loading....", Toast.LENGTH_SHORT).show();
-        photo = (Hit) getIntent().getSerializableExtra("photo");
-        Picasso.get().load(photo.getLargeImageURL()).into(imageViewWallpaper);
+        // Set current item to the selected image
+        int currentPosition = getIntent().getIntExtra("selectedImagePosition", 0);
+        viewPagerImages.setCurrentItem(currentPosition, false);
 
-        Picasso.get().load(photo.getUserImageURL()).error(R.drawable.user_icon).into(userImage);
-        username.setText(photo.getUser());
-        downloads.setText(Utils.convertToKilo(photo.getDownloads()));
-        views.setText(Utils.convertToKilo(photo.getViews()));
-        likes.setText(Utils.convertToKilo(photo.getLikes()));
+        updatedImageData(currentPosition, photo);
 
-        fabDownload.setOnClickListener(view -> {
+        viewPagerImages.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                super.onPageSelected(position);
+                newPosition = position;
+                updatedImageData(position, photo);
+            }
+
+        });
+
+        downloadBtn.setOnClickListener(view -> {
 
             descTextDialog.setText("Do you want to download this wallpaper to your Gallery?");
 
-            confirmBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    downloadImg();
-                    dialog.dismiss();
-                }
+            confirmBtn.setOnClickListener(view12 -> {
+                downloadImg(newPosition, photo);
+                dialog.dismiss();
             });
             cancelBtn.setOnClickListener(view1 -> dialog.dismiss());
 
@@ -96,53 +110,80 @@ public class WallPaperActivity extends AppCompatActivity {
         });
 
 
-        fabWallpaper.setOnClickListener(view -> {
+        wallpaperBtn.setOnClickListener(view -> {
 
             descTextDialog.setText("Do you want to set this image as your wallpaper?");
 
-            confirmBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    setWallpaper();
-                    dialog.dismiss();
-                }
+            confirmBtn.setOnClickListener(view14 -> {
+                setWallpaper(newPosition, photo);
+                dialog.dismiss();
             });
             cancelBtn.setOnClickListener(view13 -> dialog.dismiss());
 
             dialog.show();
         });
 
-
     }
 
-    private void setWallpaper() {
-        WallpaperManager wallpaperManager = WallpaperManager.getInstance(WallPaperActivity.this);
-        Bitmap bitmap = ((BitmapDrawable) imageViewWallpaper.getDrawable()).getBitmap();
+    private void updatedImageData(int currentPosition, List<Hit> photo){
 
-        try {
-            wallpaperManager.setBitmap(bitmap);
-            Toast.makeText(WallPaperActivity.this, "Wallpaper Set!", Toast.LENGTH_SHORT).show();
-        } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(WallPaperActivity.this, "Wallpaper cannot be set", Toast.LENGTH_SHORT).show();
+        if (photo.get(currentPosition).getUserImageURL() != null && !photo.get(currentPosition).getUserImageURL().isEmpty()){
+            Picasso.get().load(photo.get(currentPosition).getUserImageURL()).error(R.drawable.user_icon).into(userImage);
+        }else {
+            userImage.setImageResource(R.drawable.user_icon);
         }
+
+
+        username.setText(photo.get(currentPosition).getUser());
+        downloads.setText(Utils.convertToKilo(photo.get(currentPosition).getDownloads()));
+        views.setText(Utils.convertToKilo(photo.get(currentPosition).getViews()));
+        likes.setText(Utils.convertToKilo(photo.get(currentPosition).getLikes()));
+
     }
 
-    private void downloadImg() {
+
+    private void setWallpaper(int currentPosition, List<Hit> photo){
+
+        DisplayMetrics metrics = getResources().getDisplayMetrics();
+        int width = metrics.widthPixels;
+        int height = metrics.heightPixels;
+
+        Glide.with(this)
+                .asBitmap()
+                .load(photo.get(currentPosition).getWebformatURL()).placeholder(R.drawable.image_placeholder)
+                .override(width, height)
+                .centerCrop()
+                .into(new CustomTarget<Bitmap>() {
+                    @Override
+                    public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                        WallpaperManager wallpaperManager = WallpaperManager.getInstance(getApplicationContext());
+                        try {
+                            wallpaperManager.setBitmap(resource);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    @Override
+                    public void onLoadCleared(@Nullable Drawable placeholder) {
+                    }
+                });
+    }
+
+    private void downloadImg(int currentPosition, List<Hit> photo) {
 
         DownloadManager downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-        Uri uri = Uri.parse(photo.getWebformatURL());
+        Uri uri = Uri.parse(photo.get(currentPosition).getWebformatURL());
 
 
         DownloadManager.Request request = new DownloadManager.Request(uri);
 
         request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI | DownloadManager.Request.NETWORK_MOBILE)
                 .setAllowedOverRoaming(false)
-                .setTitle("WallPixels_" + photo.getUser() + "_Pixabay")
+                .setTitle("WallPixels_" + photo.get(currentPosition).getUser() + "_Pixabay")
                 .setMimeType("image/jpeg")
                 .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
 
-                .setDestinationInExternalPublicDir(Environment.DIRECTORY_PICTURES, "WallPixels_" + photo.getUser() + ".jpg");
+                .setDestinationInExternalPublicDir(Environment.DIRECTORY_PICTURES, "WallPixels_" + photo.get(currentPosition).getUser() + ".jpg");
 
         downloadManager.enqueue(request);
 

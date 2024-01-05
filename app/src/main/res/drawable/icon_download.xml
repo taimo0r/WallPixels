@@ -1,5 +1,31 @@
-<vector android:height="24dp" android:tint="#000000"
-    android:viewportHeight="24" android:viewportWidth="24"
-    android:width="24dp" xmlns:android="http://schemas.android.com/apk/res/android">
-    <path android:fillColor="@android:color/white" android:pathData="M5,20h14v-2H5V20zM19,9h-4V3H9v6H5l7,7L19,9z"/>
+<!--<vector android:height="24dp" android:tint="#000000"-->
+<!--    android:viewportHeight="24" android:viewportWidth="24"-->
+<!--    android:width="24dp" xmlns:android="http://schemas.android.com/apk/res/android">-->
+<!--    <path android:fillColor="@android:color/white" android:pathData="M5,20h14v-2H5V20zM19,9h-4V3H9v6H5l7,7L19,9z"/>-->
+<!--</vector>-->
+
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="#000000">
+
+    <!-- Group for the outline -->
+    <group
+        android:scaleX="1.1"
+        android:scaleY="1.1"
+        android:pivotX="12"
+        android:pivotY="12">
+
+        <!-- Outline path -->
+        <path
+            android:pathData="M5,20h14v-2H5V20zM19,9h-4V3H9v6H5l7,7L19,9z"
+            android:fillColor="#FFFFFF" />
+    </group>
+
+    <!-- Original icon path -->
+    <path
+        android:pathData="M5,20h14v-2H5V20zM19,9h-4V3H9v6H5l7,7L19,9z"
+        android:fillColor="@android:color/white" />
 </vector>

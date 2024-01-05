@@ -1,10 +1,13 @@
 package com.taimoor.wallpixels.ApiService;
 
 import android.content.Context;
+import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.taimoor.wallpixels.Listeners.ApiResponseListener;
 import com.taimoor.wallpixels.Models.ApiResponse;
 
@@ -20,7 +23,7 @@ public class RequestManager {
 
     Context context;
     private static final String BASE_URL = "https://pixabay.com/";
-    public static final String ApiKey = "41320016-b0b02187972d32307aadaab86";
+    public static String ApiKey;
     private static Retrofit retrofit = null;
 
     public RequestManager(Context context) {
@@ -28,6 +31,7 @@ public class RequestManager {
     }
 
     public static Retrofit getClient() {
+
         if (retrofit == null) {
             retrofit = new Retrofit.Builder()
                     .baseUrl(BASE_URL)
@@ -37,17 +41,42 @@ public class RequestManager {
         return retrofit;
     }
 
+    public static void initApiKey() {
+        getKeyFromFirestore(key -> ApiKey = key);
+    }
+
+    public static void getKeyFromFirestore(FirestoreCallback callback) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("Api Data")
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            String key = document.getString("key");
+                            if (key != null) {
+                                callback.onCallback(key);
+                            }
+                        }
+                    } else {
+                        Log.d("Key", "ERROR GETTING KEY");
+                    }
+                });
+    }
+
+
+
     public void getWallpapers(ApiResponseListener listener, String page) {
 
         Retrofit retrofit = RequestManager.getClient();
         PixabayApiService apiService = retrofit.create(PixabayApiService.class);
-        Call<ApiResponse> call = apiService.getImages(ApiKey, page, "30", true);
+        Log.d("Key", "" + ApiKey);
+        Call<ApiResponse> call = apiService.getImages(ApiKey, page, "30","vertical",true);
 
         call.enqueue(new Callback<>() {
             @Override
             public void onResponse(@NonNull Call<ApiResponse> call, @NonNull Response<ApiResponse> response) {
                 if (!response.isSuccessful()) {
-                    Toast.makeText(context, response.message(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, "An Error: Occurred Occurred \n Swipe to Refresh " , Toast.LENGTH_SHORT).show();
                     return;
                 }
                 listener.onFetch(response.body(), response.message());
@@ -66,7 +95,7 @@ public class RequestManager {
 
         Retrofit retrofit = RequestManager.getClient();
         PixabayApiService apiService = retrofit.create(PixabayApiService.class);
-        Call<ApiResponse> call = apiService.searchImages(ApiKey, query, page, "30", true);
+        Call<ApiResponse> call = apiService.searchImages(ApiKey, query, page, "30", "vertical",true);
 
         call.enqueue(new Callback<>() {
             @Override
@@ -133,6 +162,9 @@ public class RequestManager {
 
     }
 
+    public interface FirestoreCallback {
+        void onCallback(String key);
+    }
 
     private interface PixabayApiService {
         @GET("api/")
@@ -140,6 +172,7 @@ public class RequestManager {
                 @Query("key") String apiKey,
                 @Query("page") String page,
                 @Query("per_page") String per_page,
+                @Query("orientation") String orientation,
                 @Query("safesearch") boolean value);
 
 
@@ -149,6 +182,7 @@ public class RequestManager {
                 @Query("q") String query,
                 @Query("page") String page,
                 @Query("per_page") String per_page,
+                @Query("orientation") String orientation,
                 @Query("safesearch") boolean value);
 
         @GET("api/videos/")
