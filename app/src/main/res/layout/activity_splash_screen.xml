@@ -2,29 +2,40 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@color/white">
+    android:background="@color/white"
+    android:orientation="vertical">
 
     <de.hdodenhof.circleimageview.CircleImageView
-        android:id="@+id/icon"
+        android:id="@+id/app_icon"
         android:layout_width="200dp"
         android:layout_height="200dp"
-        android:src="@drawable/wallpixel_icon"
-        android:layout_centerInParent="true"/>
+        android:layout_centerInParent="true"
+        android:src="@drawable/wallpixel_icon" />
 
     <TextView
+        android:id="@+id/app_name_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/icon"
-        android:layout_marginTop="10dp"
+        android:layout_below="@id/app_icon"
         android:layout_centerInParent="true"
-        android:textStyle="bold"
-        android:gravity="center_horizontal"
+        android:layout_marginTop="10dp"
         android:fontFamily="casual"
+        android:gravity="center_horizontal"
+        android:text="Wallpixels\n Loading......!"
         android:textAllCaps="true"
-        android:text="Wallpixels \n Loading......!"
         android:textColor="@color/black"
-        android:textSize="32sp" />
+        android:textSize="32sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/poweredby_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:gravity="center_horizontal"
+        android:layout_marginBottom="20dp"
+        android:text="Powered by Pixabay"/>
 
 
 </RelativeLayout>

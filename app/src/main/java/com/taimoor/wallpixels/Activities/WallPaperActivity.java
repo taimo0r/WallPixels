@@ -44,7 +44,7 @@ public class WallPaperActivity extends AppCompatActivity {
     ImageButton downloadBtn, wallpaperBtn, favBtn;
     Dialog dialog;
     Button cancelBtn, confirmBtn;
-    int newPosition;
+    int newPosition = 0;
     TextView descTextDialog, username, downloads, views, likes;
 
 
@@ -84,6 +84,7 @@ public class WallPaperActivity extends AppCompatActivity {
         int currentPosition = getIntent().getIntExtra("selectedImagePosition", 0);
         viewPagerImages.setCurrentItem(currentPosition, false);
 
+        newPosition = currentPosition;
         updatedImageData(currentPosition, photo);
 
         viewPagerImages.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
@@ -91,7 +92,7 @@ public class WallPaperActivity extends AppCompatActivity {
             public void onPageSelected(int position) {
                 super.onPageSelected(position);
                 newPosition = position;
-                updatedImageData(position, photo);
+                updatedImageData(newPosition, photo);
             }
 
         });
@@ -159,6 +160,7 @@ public class WallPaperActivity extends AppCompatActivity {
                         WallpaperManager wallpaperManager = WallpaperManager.getInstance(getApplicationContext());
                         try {
                             wallpaperManager.setBitmap(resource);
+                            Toast.makeText(WallPaperActivity.this, "Wallpaper Set!", Toast.LENGTH_SHORT).show();
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -182,7 +184,6 @@ public class WallPaperActivity extends AppCompatActivity {
                 .setTitle("WallPixels_" + photo.get(currentPosition).getUser() + "_Pixabay")
                 .setMimeType("image/jpeg")
                 .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-
                 .setDestinationInExternalPublicDir(Environment.DIRECTORY_PICTURES, "WallPixels_" + photo.get(currentPosition).getUser() + ".jpg");
 
         downloadManager.enqueue(request);
