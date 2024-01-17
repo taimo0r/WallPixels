@@ -70,13 +70,13 @@ public class RequestManager {
         Retrofit retrofit = RequestManager.getClient();
         PixabayApiService apiService = retrofit.create(PixabayApiService.class);
         Log.d("Key", "" + ApiKey);
-        Call<ApiResponse> call = apiService.getImages(ApiKey, page, "30","vertical",true);
+        Call<ApiResponse> call = apiService.getImages(ApiKey, page, "200","vertical",true);
 
         call.enqueue(new Callback<>() {
             @Override
             public void onResponse(@NonNull Call<ApiResponse> call, @NonNull Response<ApiResponse> response) {
                 if (!response.isSuccessful()) {
-                    Toast.makeText(context, "An Error: Occurred Occurred \n Swipe to Refresh " , Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, "An Error Occurred  \n Swipe to Refresh " , Toast.LENGTH_SHORT).show();
                     return;
                 }
                 listener.onFetch(response.body(), response.message());
@@ -95,7 +95,7 @@ public class RequestManager {
 
         Retrofit retrofit = RequestManager.getClient();
         PixabayApiService apiService = retrofit.create(PixabayApiService.class);
-        Call<ApiResponse> call = apiService.searchImages(ApiKey, query, page, "30", "vertical",true);
+        Call<ApiResponse> call = apiService.searchImages(ApiKey, query, page, "200", "vertical",true);
 
         call.enqueue(new Callback<>() {
             @Override
@@ -118,7 +118,7 @@ public class RequestManager {
     public void getVideoWallpapers(ApiResponseListener listener, String page) {
         Retrofit retrofit = RequestManager.getClient();
         PixabayApiService apiService = retrofit.create(PixabayApiService.class);
-        Call<ApiResponse> call = apiService.getVideos(ApiKey, page, "20", true);
+        Call<ApiResponse> call = apiService.getVideos(ApiKey, page, "200", true);
 
         call.enqueue(new Callback<>() {
             @Override
@@ -142,7 +142,7 @@ public class RequestManager {
 
         Retrofit retrofit = RequestManager.getClient();
         PixabayApiService apiService = retrofit.create(PixabayApiService.class);
-        Call<ApiResponse> call = apiService.getSearchedVideos(ApiKey, query, page, "20", true);
+        Call<ApiResponse> call = apiService.getSearchedVideos(ApiKey, query, page, "200", true);
 
         call.enqueue(new Callback<>() {
             @Override

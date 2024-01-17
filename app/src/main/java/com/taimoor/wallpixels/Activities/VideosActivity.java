@@ -97,6 +97,11 @@ public class VideosActivity extends AppCompatActivity implements VideoRecyclerCl
                     return true;
                 case R.id.video_activity:
                     return true;
+                case R.id.favourites_activity:
+                    startActivity(new Intent(getApplicationContext(), Favourites.class));
+                    overridePendingTransition(0, 0);
+                    finish();
+                    return true;
             }
             return false;
         });

@@ -1,9 +1,17 @@
 package com.taimoor.wallpixels.Models;
 
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+import androidx.room.TypeConverters;
+
+import com.taimoor.wallpixels.Database.VideosConverter;
+
 import java.io.Serializable;
 
+@Entity(tableName = "favourites")
 public class Hit implements Serializable {
 
+    @PrimaryKey
     private long id;
     private String pageURL;
     private String type;
@@ -34,6 +42,7 @@ public class Hit implements Serializable {
     // Fields specific to videos
     private int duration; // Duration in seconds
     private String picture_id;
+    @TypeConverters(VideosConverter.class)
     private Videos videos;
 
     // Getters and Setters for all fields

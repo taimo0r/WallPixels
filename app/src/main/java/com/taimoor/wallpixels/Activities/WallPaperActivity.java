@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.DisplayMetrics;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
@@ -21,13 +22,18 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Observer;
+import androidx.room.Room;
 import androidx.viewpager2.widget.ViewPager2;
 
+import com.airbnb.lottie.LottieAnimationView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.squareup.picasso.Picasso;
 import com.taimoor.wallpixels.Adapters.ImagePagerAdapter;
+import com.taimoor.wallpixels.Database.AppDatabase;
+import com.taimoor.wallpixels.Database.HitDao;
 import com.taimoor.wallpixels.Models.Hit;
 import com.taimoor.wallpixels.R;
 import com.taimoor.wallpixels.Utils;
@@ -46,7 +52,8 @@ public class WallPaperActivity extends AppCompatActivity {
     Button cancelBtn, confirmBtn;
     int newPosition = 0;
     TextView descTextDialog, username, downloads, views, likes;
-
+    AppDatabase database;
+    LottieAnimationView favouritedBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +67,8 @@ public class WallPaperActivity extends AppCompatActivity {
         viewPagerImages = findViewById(R.id.viewPagerImages);
         downloadBtn = findViewById(R.id.download_btn);
         wallpaperBtn = findViewById(R.id.wallpaper_btn);
+        favBtn = findViewById(R.id.fav_btn);
+        favouritedBtn = findViewById(R.id.favourited_btn);
         userImage = findViewById(R.id.userImage);
         username = findViewById(R.id.userName);
         downloads = findViewById(R.id.downloadCount);
@@ -75,6 +84,8 @@ public class WallPaperActivity extends AppCompatActivity {
         cancelBtn = dialog.findViewById(R.id.cancel_button);
         confirmBtn = dialog.findViewById(R.id.confirm_action);
         descTextDialog = dialog.findViewById(R.id.descText);
+
+        database = AppDatabase.getInstance(WallPaperActivity.this);
 
         List<Hit> photo = (List<Hit>) getIntent().getSerializableExtra("photo");
         ImagePagerAdapter adapter = new ImagePagerAdapter(this, photo);
@@ -110,7 +121,6 @@ public class WallPaperActivity extends AppCompatActivity {
             dialog.show();
         });
 
-
         wallpaperBtn.setOnClickListener(view -> {
 
             descTextDialog.setText("Do you want to set this image as your wallpaper?");
@@ -124,9 +134,28 @@ public class WallPaperActivity extends AppCompatActivity {
             dialog.show();
         });
 
+        favBtn.setOnClickListener(v -> {
+
+            favBtn.setVisibility(View.GONE);
+            favouritedBtn.setVisibility(View.VISIBLE);
+            favouritedBtn.setMinAndMaxProgress(0.3F, 1);
+            favouritedBtn.playAnimation();
+
+            database.hitDao().addToFavourites(photo.get(newPosition));
+        });
+
+
+        favouritedBtn.setOnClickListener(v -> {
+            favBtn.setVisibility(View.VISIBLE);
+            favouritedBtn.setVisibility(View.GONE);
+
+            database.hitDao().deleteById(photo.get(newPosition).getId());
+        });
     }
 
     private void updatedImageData(int currentPosition, List<Hit> photo){
+
+        long wallpaperID = photo.get(currentPosition).getId();
 
         if (photo.get(currentPosition).getUserImageURL() != null && !photo.get(currentPosition).getUserImageURL().isEmpty()){
             Picasso.get().load(photo.get(currentPosition).getUserImageURL()).error(R.drawable.user_icon).into(userImage);
@@ -134,13 +163,30 @@ public class WallPaperActivity extends AppCompatActivity {
             userImage.setImageResource(R.drawable.user_icon);
         }
 
-
+        checkIfFavorite(wallpaperID);
         username.setText(photo.get(currentPosition).getUser());
         downloads.setText(Utils.convertToKilo(photo.get(currentPosition).getDownloads()));
         views.setText(Utils.convertToKilo(photo.get(currentPosition).getViews()));
         likes.setText(Utils.convertToKilo(photo.get(currentPosition).getLikes()));
 
     }
+
+
+    private void checkIfFavorite(long wallpaperId) {
+        AppDatabase db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "Favourites").build();
+        HitDao hitDao = db.hitDao();
+        hitDao.isFavorite(wallpaperId).observe(this, count -> {
+            if (count != null && count > 0) {
+                favBtn.setVisibility(View.GONE);
+                favouritedBtn.setVisibility(View.VISIBLE);
+                favouritedBtn.setMinAndMaxProgress(1, 1);
+            } else {
+                favBtn.setVisibility(View.VISIBLE);
+                favouritedBtn.setVisibility(View.GONE);
+            }
+        });
+    }
+
 
 
     private void setWallpaper(int currentPosition, List<Hit> photo){
@@ -151,7 +197,7 @@ public class WallPaperActivity extends AppCompatActivity {
 
         Glide.with(this)
                 .asBitmap()
-                .load(photo.get(currentPosition).getWebformatURL()).placeholder(R.drawable.image_placeholder)
+                .load(photo.get(currentPosition).getLargeImageURL()).placeholder(R.drawable.image_placeholder)
                 .override(width, height)
                 .centerCrop()
                 .into(new CustomTarget<Bitmap>() {
@@ -174,7 +220,7 @@ public class WallPaperActivity extends AppCompatActivity {
     private void downloadImg(int currentPosition, List<Hit> photo) {
 
         DownloadManager downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-        Uri uri = Uri.parse(photo.get(currentPosition).getWebformatURL());
+        Uri uri = Uri.parse(photo.get(currentPosition).getLargeImageURL());
 
 
         DownloadManager.Request request = new DownloadManager.Request(uri);

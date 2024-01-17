@@ -11,4 +11,8 @@
         android:icon="@drawable/video_icon">
     </item>
 
+    <item android:id="@+id/favourites_activity"
+        android:title=""
+        android:icon="@drawable/ic_favorite_icon">
+    </item>
 </menu>

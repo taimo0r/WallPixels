@@ -48,7 +48,6 @@ public class MainActivity extends AppCompatActivity implements onRecyclerClickLi
     RecyclerView recyclerViewHome, categoriesRecycler;
     ProgressDialog dialog;
     RequestManager manager;
-
     BottomNavigationView bottomNavigationView;
 
     String searchString = null;
@@ -84,6 +83,12 @@ public class MainActivity extends AppCompatActivity implements onRecyclerClickLi
                     return true;
                 case R.id.video_activity:
                     startActivity(new Intent(getApplicationContext(), VideosActivity.class));
+                    overridePendingTransition(0, 0);
+                    finish();
+                    return true;
+
+                case R.id.favourites_activity:
+                    startActivity(new Intent(getApplicationContext(), Favourites.class));
                     overridePendingTransition(0, 0);
                     finish();
                     return true;
